@@ -16,16 +16,22 @@ export class SimpleNLPService {
   async analyzeIntent(message: string, sessionId: string): Promise<IntentAnalysisResult> {
     try {
       const msg = message.toLowerCase().trim();
-      let bestIntent: Intent = 'unclear';
-      let bestScore = 0;
 
-      // Verificações específicas primeiro (para casos exatos)
-      if (['oi', 'olá', 'ola', 'eae', 'oii'].includes(msg)) {
-        ChatLogger.logIntent(sessionId, 'saudacao', 1.0, message);
-        return { intent: 'saudacao', confidence: 1.0, entities: {} };
+      // ESTRATÉGIA: Priorizar LLM para análise contextual, usar keywords apenas como fallback
+
+      // Primeiro: tentar análise com LLM (mais inteligente e contextual)
+      const llmResult = await this.analyzeLLMIntent(message, sessionId);
+
+      // Se LLM retornar resultado com confiança razoável, usar ele
+      if (llmResult.confidence >= 0.65) {
+        ChatLogger.logIntent(sessionId, llmResult.intent, llmResult.confidence, message);
+        return llmResult;
       }
 
-      if (msg.includes('bom dia') || msg.includes('boa tarde') || msg.includes('boa noite')) {
+      // Fallback para keywords apenas em casos muito específicos e óbvios
+      // (saudações muito curtas, comandos explícitos)
+
+      if (['oi', 'olá', 'ola', 'eae', 'oii'].includes(msg)) {
         ChatLogger.logIntent(sessionId, 'saudacao', 1.0, message);
         return { intent: 'saudacao', confidence: 1.0, entities: {} };
       }
@@ -35,76 +41,51 @@ export class SimpleNLPService {
         return { intent: 'despedida', confidence: 1.0, entities: {} };
       }
 
-      if (['sair', 'cancelar', 'parar', 'reiniciar', 'recomeçar', 'volta', 'voltar'].includes(msg) ||
-          msg.includes('começar de novo') || msg.includes('começar denovo') ||
-          msg.includes('sair daqui') || msg.includes('cancelar tudo')) {
+      if (['sair', 'cancelar', 'parar', 'reiniciar', 'recomeçar'].includes(msg)) {
         ChatLogger.logIntent(sessionId, 'sair', 1.0, message);
         return { intent: 'sair', confidence: 1.0, entities: {} };
       }
 
-      // Verificar respostas afirmativas simples
-      if (['ok', 'sim', 'certo', 'beleza', 'perfeito', 'ótimo', 'legal', 'show', 'bora', 'dale'].includes(msg) ||
-          msg.includes('vamos') || msg.includes('continuar') || msg.includes('pode ser') ||
-          msg.includes('vamos lá') || msg.includes('isso aí')) {
-        ChatLogger.logIntent(sessionId, 'continuar', 1.0, message);
-        return { intent: 'continuar', confidence: 1.0, entities: {} };
+      if (['ok', 'sim', 'certo', 'beleza', 'show', 'dale'].includes(msg)) {
+        ChatLogger.logIntent(sessionId, 'continuar', 0.9, message);
+        return { intent: 'continuar', confidence: 0.9, entities: {} };
       }
 
-      // Verificar negações explícitas
-      if (msg.includes('não quero') || msg.includes('nao quero') ||
-          msg.includes('não preciso') || msg.includes('nao preciso') ||
-          msg.includes('cancela') || msg.includes('para')) {
-        ChatLogger.logIntent(sessionId, 'unclear', 0.9, message);
-        return { intent: 'unclear', confidence: 0.9, entities: {} };
-      }
+      // Se chegou aqui, LLM teve baixa confiança e não é caso óbvio
+      // Usar resultado da LLM mesmo com baixa confiança (melhor que keywords)
+      ChatLogger.logIntent(sessionId, llmResult.intent, llmResult.confidence, message);
+      return llmResult;
 
-      // Verificar cada intenção com palavras-chave
-      for (const [intent, keywords] of Object.entries(this.keywords)) {
-        let score = 0;
-        const totalKeywords = keywords.length;
-
-        // Contar quantas palavras-chave foram encontradas
-        for (const keyword of keywords) {
-          if (msg.includes(keyword)) {
-            score += 1;
-          }
-        }
-
-        // Calcular score normalizado
-        const normalizedScore = score / totalKeywords;
-
-        if (normalizedScore > bestScore) {
-          bestScore = normalizedScore;
-          bestIntent = intent as Intent;
-        }
-      }
-
-      // Se não encontrou nenhuma palavra-chave significativa, tentar LLM
-      if (bestScore < 0.2) {
-        const llmResult = await this.analyzeLLMIntent(message, sessionId);
-        if (llmResult.confidence > 0.6) {
-          ChatLogger.logIntent(sessionId, llmResult.intent, llmResult.confidence, message);
-          return llmResult;
-        }
-        bestIntent = 'unclear';
-        bestScore = 0;
-      }
-
-      ChatLogger.logIntent(sessionId, bestIntent, bestScore, message);
-
-      return {
-        intent: bestIntent,
-        confidence: bestScore,
-        entities: {}
-      };
     } catch (error) {
       ChatLogger.logError(sessionId, error as Error, { message });
-      return {
-        intent: 'unclear',
-        confidence: 0,
-        entities: {}
-      };
+
+      // Fallback final: keywords simples
+      return this.keywordFallback(message, sessionId);
     }
+  }
+
+  private keywordFallback(message: string, sessionId: string): IntentAnalysisResult {
+    const msg = message.toLowerCase().trim();
+    let bestIntent: Intent = 'unclear';
+    let bestScore = 0;
+
+    // Verificar cada intenção com palavras-chave
+    for (const [intent, keywords] of Object.entries(this.keywords)) {
+      let score = 0;
+      for (const keyword of keywords) {
+        if (msg.includes(keyword)) {
+          score += 1;
+        }
+      }
+      const normalizedScore = score / keywords.length;
+      if (normalizedScore > bestScore) {
+        bestScore = normalizedScore;
+        bestIntent = intent as Intent;
+      }
+    }
+
+    ChatLogger.logIntent(sessionId, bestIntent, bestScore, message);
+    return { intent: bestIntent, confidence: bestScore, entities: {} };
   }
 
   private async analyzeLLMIntent(message: string, sessionId: string): Promise<IntentAnalysisResult> {

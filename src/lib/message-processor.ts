@@ -18,30 +18,63 @@ export class MessageProcessor {
       const currentContext = ConversationContextManager.getContext(sessionId);
       const waitingFor = ConversationContextManager.getWaitingFor(sessionId);
 
+      console.log('🚀 [DEBUG] processMessage iniciado:', {
+        message: message.substring(0, 50),
+        sessionId: sessionId.substring(0, 8),
+        waitingFor,
+        currentIntent: currentContext.currentIntent,
+        hasCollectedData: Object.keys(currentContext.collectedData).length > 0
+      });
+
       // Se estamos esperando uma resposta específica, verificar se usuário quer cancelar primeiro
       if (waitingFor) {
+        console.log('⏳ [DEBUG] Sistema está waitingFor:', waitingFor);
+
         // Verificar se o usuário quer cancelar ou mudar de intenção
         const intentAnalysis = await simpleNlpService.analyzeIntent(message, sessionId);
+        console.log('🧠 [DEBUG] Análise de intenção durante waitingFor:', intentAnalysis);
 
-        // Se detectou uma intenção clara diferente ou negação, cancelar waitingFor
-        if (intentAnalysis.confidence > 0.7 ||
-            message.toLowerCase().includes('não quero') ||
+        // Se detectou negação explícita, cancelar waitingFor
+        if (message.toLowerCase().includes('não quero') ||
             message.toLowerCase().includes('nao quero') ||
             message.toLowerCase().includes('cancela')) {
 
+          console.log('🔄 [DEBUG] Cancelando waitingFor - negação detectada');
           ConversationContextManager.clearWaitingFor(sessionId);
-          // Se é negação, limpar todo o contexto
-          if (message.toLowerCase().includes('não quero') ||
-              message.toLowerCase().includes('nao quero')) {
-            ConversationContextManager.resetContextKeepingHistory(sessionId);
-          }
+          ConversationContextManager.resetContextKeepingHistory(sessionId);
+          console.log('🗑️ [DEBUG] Contexto resetado por negação');
+          // Continuar com o processamento normal da nova intenção
+        }
+        // Se detectou intenção DIFERENTE da atual com alta confiança, cancelar waitingFor
+        else if (intentAnalysis.confidence > 0.7 &&
+                 intentAnalysis.intent !== currentContext.currentIntent &&
+                 intentAnalysis.intent !== 'continuar' &&
+                 intentAnalysis.intent !== 'unclear') {
+
+          console.log('🔄 [DEBUG] Cancelando waitingFor - nova intenção DIFERENTE detectada:', {
+            nova: intentAnalysis.intent,
+            atual: currentContext.currentIntent
+          });
+          ConversationContextManager.clearWaitingFor(sessionId);
           // Continuar com o processamento normal da nova intenção
         } else {
+          console.log('✅ [DEBUG] Tentando processar como resposta específica');
           // Tentar processar como resposta específica
           const response = await this.processSpecificResponse(message, sessionId, waitingFor);
           if (response) {
+            console.log('🎉 [DEBUG] Resposta específica processada com sucesso!');
             return response;
           }
+
+          console.log('🤖 [DEBUG] Falha no processamento tradicional, tentando LLM como fallback');
+          // Se falhou, tentar com LLM baseado no contexto
+          const llmResponse = await this.processResponseWithLLM(message, sessionId, waitingFor);
+          if (llmResponse) {
+            console.log('🎉 [DEBUG] LLM processou resposta com sucesso!');
+            return llmResponse;
+          }
+
+          console.log('❌ [DEBUG] Falha ao processar resposta específica, limpando waitingFor');
           // Se não conseguiu processar como resposta específica, limpar waitingFor
           ConversationContextManager.clearWaitingFor(sessionId);
         }
@@ -92,26 +125,50 @@ export class MessageProcessor {
     const currentContext = ConversationContextManager.getContext(sessionId);
     const currentIntent = currentContext.currentIntent;
 
-    if (!currentIntent) return null;
+    console.log('🔍 [DEBUG] processSpecificResponse:', {
+      message,
+      waitingFor,
+      currentIntent,
+      collectedData: currentContext.collectedData,
+      sessionId: sessionId.substring(0, 8)
+    });
+
+    if (!currentIntent) {
+      console.log('❌ [DEBUG] Sem currentIntent, retornando null');
+      return null;
+    }
 
     switch (waitingFor) {
       case 'ano':
+        console.log('📚 [DEBUG] Processando ano para plano_aula');
         if (currentIntent === 'plano_aula') {
-          ConversationContextManager.updateCollectedData(sessionId, 'ano', message.trim());
+          const anoProcessado = this.extractAnoEscolar(message);
+          console.log('✅ [DEBUG] Ano extraído:', anoProcessado);
+
+          ConversationContextManager.updateCollectedData(sessionId, 'ano', anoProcessado);
           ConversationContextManager.clearWaitingFor(sessionId);
+
+          console.log('🎯 [DEBUG] Chamando handlePlanoAulaIntent após coletar ano');
           return await this.handlePlanoAulaIntent(sessionId, message);
+        } else {
+          console.log('❌ [DEBUG] currentIntent não é plano_aula:', currentIntent);
         }
         break;
 
       case 'tema':
+        console.log('📖 [DEBUG] Processando tema para plano_aula');
         if (currentIntent === 'plano_aula') {
           ConversationContextManager.updateCollectedData(sessionId, 'tema', message.trim());
           ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('🎯 [DEBUG] Chamando handlePlanoAulaIntent após coletar tema');
           return await this.handlePlanoAulaIntent(sessionId, message);
+        } else {
+          console.log('❌ [DEBUG] currentIntent não é plano_aula para tema:', currentIntent);
         }
         break;
 
       case 'dificuldade':
+        console.log('⚖️ [DEBUG] Processando dificuldade para plano_aula');
         if (currentIntent === 'plano_aula') {
           const msg = message.toLowerCase().trim();
           let difficulty = 'medio';
@@ -122,9 +179,13 @@ export class MessageProcessor {
             difficulty = 'dificil';
           }
 
+          console.log('✅ [DEBUG] Dificuldade processada:', difficulty);
           ConversationContextManager.updateCollectedData(sessionId, 'nivelDificuldade', difficulty);
           ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('🎯 [DEBUG] Chamando handlePlanoAulaIntent após coletar dificuldade');
           return await this.handlePlanoAulaIntent(sessionId, message);
+        } else {
+          console.log('❌ [DEBUG] currentIntent não é plano_aula para dificuldade:', currentIntent);
         }
         break;
 
@@ -137,7 +198,150 @@ export class MessageProcessor {
         break;
     }
 
+    console.log('❌ [DEBUG] Nenhum case processado em processSpecificResponse');
     return null;
+  }
+
+  private static extractAnoEscolar(message: string): string {
+    const msg = message.toLowerCase().trim();
+
+    console.log('🔤 [DEBUG] Extraindo ano de:', msg);
+
+    // Mapear variações comuns
+    if (msg.includes('primeiro') || msg.includes('1º') || msg === '1') return '1º ano';
+    if (msg.includes('segundo') || msg.includes('2º') || msg === '2') return '2º ano';
+    if (msg.includes('terceiro') || msg.includes('3º') || msg === '3') return '3º ano';
+    if (msg.includes('quarto') || msg.includes('4º') || msg === '4') return '4º ano';
+    if (msg.includes('quinto') || msg.includes('5º') || msg === '5') return '5º ano';
+    if (msg.includes('sexto') || msg.includes('6º') || msg === '6') return '6º ano';
+    if (msg.includes('sétimo') || msg.includes('7º') || msg === '7') return '7º ano';
+    if (msg.includes('oitavo') || msg.includes('8º') || msg === '8') return '8º ano';
+    if (msg.includes('nono') || msg.includes('9º') || msg === '9') return '9º ano';
+    if (msg.includes('médio') || msg.includes('medio')) return 'Ensino Médio';
+
+    // Se não encontrou padrão, usar texto original
+    console.log('⚠️ [DEBUG] Não encontrou padrão específico, usando original');
+    return message.trim();
+  }
+
+  private static async processResponseWithLLM(message: string, sessionId: string, waitingFor: string): Promise<string | null> {
+    try {
+      console.log('🤖 [DEBUG] Iniciando processamento LLM para waitingFor:', waitingFor);
+
+      const context = ConversationContextManager.getContext(sessionId);
+      const recentHistory = ConversationContextManager.getConversationHistory(sessionId).slice(-4);
+
+      // Construir contexto para LLM
+      let contextString = 'Histórico recente da conversa:\n';
+      recentHistory.forEach(msg => {
+        contextString += `${msg.sender === 'user' ? 'Professor' : 'Assistente'}: ${msg.text}\n`;
+      });
+
+      let prompt = '';
+
+      switch (waitingFor) {
+        case 'ano':
+          prompt = `${contextString}
+
+Analise a conversa acima. O assistente está perguntando sobre o ano escolar para criar um plano de aula.
+A mensagem atual do professor é: "${message}"
+
+Identifique o ano escolar mencionado pelo professor. Responda APENAS com o ano no formato adequado (ex: "2º ano", "5º ano", "Ensino Médio").
+Se não conseguir identificar claramente, responda apenas "UNCLEAR".`;
+          break;
+
+        case 'tema':
+          prompt = `${contextString}
+
+Analise a conversa acima. O assistente está perguntando sobre o tema ou habilidade BNCC para o plano de aula.
+A mensagem atual do professor é: "${message}"
+
+Identifique o tema ou habilidade BNCC mencionado pelo professor. Responda APENAS com o tema/habilidade identificado.
+Se não conseguir identificar claramente, responda apenas "UNCLEAR".`;
+          break;
+
+        case 'dificuldade':
+          prompt = `${contextString}
+
+Analise a conversa acima. O assistente está perguntando sobre o nível de dificuldade para o plano de aula.
+A mensagem atual do professor é: "${message}"
+
+Identifique o nível de dificuldade mencionado. Responda APENAS com: "facil", "medio" ou "dificil".
+Se não conseguir identificar claramente, responda apenas "UNCLEAR".`;
+          break;
+
+        case 'data_inicio':
+          prompt = `${contextString}
+
+Analise a conversa acima. O assistente está perguntando sobre a data de início para o planejamento semanal.
+A mensagem atual do professor é: "${message}"
+
+Identifique a data de início mencionada pelo professor. Responda APENAS com a data identificada.
+Se não conseguir identificar claramente, responda apenas "UNCLEAR".`;
+          break;
+
+        default:
+          console.log('❌ [DEBUG] waitingFor não suportado pelo LLM:', waitingFor);
+          return null;
+      }
+
+      const { OpenAIService } = await import('./openai');
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é um assistente preciso que extrai informações específicas de conversas.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 50,
+        temperature: 0.1
+      });
+
+      const extractedValue = response.choices[0]?.message?.content?.trim();
+      console.log('🧠 [DEBUG] LLM extraiu valor:', extractedValue);
+
+      if (!extractedValue || extractedValue === 'UNCLEAR') {
+        console.log('❌ [DEBUG] LLM não conseguiu extrair valor claro');
+        return null;
+      }
+
+      // Processar valor extraído
+      switch (waitingFor) {
+        case 'ano':
+          ConversationContextManager.updateCollectedData(sessionId, 'ano', extractedValue);
+          ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('✅ [DEBUG] LLM processou ano, chamando handlePlanoAulaIntent');
+          return await this.handlePlanoAulaIntent(sessionId, message);
+
+        case 'tema':
+          ConversationContextManager.updateCollectedData(sessionId, 'tema', extractedValue);
+          ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('✅ [DEBUG] LLM processou tema, chamando handlePlanoAulaIntent');
+          return await this.handlePlanoAulaIntent(sessionId, message);
+
+        case 'dificuldade':
+          ConversationContextManager.updateCollectedData(sessionId, 'nivelDificuldade', extractedValue);
+          ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('✅ [DEBUG] LLM processou dificuldade, chamando handlePlanoAulaIntent');
+          return await this.handlePlanoAulaIntent(sessionId, message);
+
+        case 'data_inicio':
+          ConversationContextManager.updateCollectedData(sessionId, 'dataInicio', extractedValue);
+          ConversationContextManager.clearWaitingFor(sessionId);
+          console.log('✅ [DEBUG] LLM processou data, chamando handlePlanejamentoSemanalIntent');
+          return await this.handlePlanejamentoSemanalIntent(sessionId, message);
+      }
+
+      return null;
+
+    } catch (error) {
+      console.error('❌ [DEBUG] Erro no processamento LLM:', error);
+      return null;
+    }
   }
 
   private static processEntities(entities: Record<string, any>, sessionId: string, intent: Intent) {
@@ -161,7 +365,7 @@ export class MessageProcessor {
     this.extractAdditionalInfo(sessionId, intent, entities);
   }
 
-  private static extractAdditionalInfo(sessionId: string, intent: Intent, entities: Record<string, any>) {
+  private static async extractAdditionalInfo(sessionId: string, intent: Intent, entities: Record<string, any>) {
     const recentMessages = ConversationContextManager.getRecentUserMessages(sessionId, 3);
     const latestMessage = recentMessages[recentMessages.length - 1];
     const currentContext = ConversationContextManager.getContext(sessionId);
@@ -174,77 +378,87 @@ export class MessageProcessor {
                            ? currentContext.currentIntent
                            : intent;
 
-    switch (effectiveIntent) {
-      case 'plano_aula':
-        this.extractPlanoAulaInfo(sessionId, latestMessage);
-        break;
+    // Usar LLM para extrair dados de forma inteligente
+    if (effectiveIntent === 'plano_aula' || effectiveIntent === 'planejamento_semanal') {
+      const extractedData = await OpenAIService.extractDataFromMessage(
+        latestMessage,
+        effectiveIntent,
+        currentContext.collectedData,
+        currentContext.waitingFor,
+        sessionId
+      );
 
-      case 'calendario_escolar':
-        this.extractCalendarioInfo(sessionId, latestMessage);
-        break;
-    }
-  }
-
-  private static extractPlanoAulaInfo(sessionId: string, message: string) {
-    const collectedData = ConversationContextManager.getCollectedData(sessionId);
-
-    // Extrair ano escolar se ainda não temos - versão simplificada
-    if (!collectedData.ano) {
-      // Verificações simples e eficientes
-      if (message.includes('ano') || message.match(/\d+[°º]/)) {
-        const cleanMessage = message.trim();
-        ConversationContextManager.updateCollectedData(sessionId, 'ano', cleanMessage);
-      }
-    }
-
-    // Extrair tema se ainda não temos - versão simplificada
-    if (!collectedData.tema && !collectedData.habilidadeBNCC) {
-      const msg = message.toLowerCase();
-
-      // Verificações simples por palavras-chave
-      if (msg.includes('tema') || msg.includes('sobre') || msg.includes('ensinar')) {
-        const cleanMessage = message.trim().replace(/[.!?]$/, '');
-        ConversationContextManager.updateCollectedData(sessionId, 'tema', cleanMessage);
-      }
-      // Se não encontrou pattern específico e não é confirmação, usar como tema
-      else if (message.length > 3 && !['sim', 'não', 'ok', 'certo'].includes(msg)) {
-        const cleanMessage = message.trim().replace(/[.!?]$/, '');
-        ConversationContextManager.updateCollectedData(sessionId, 'tema', cleanMessage);
-      }
-    }
-
-    // Extrair nível de dificuldade se ainda não temos - versão simplificada
-    if (!collectedData.nivelDificuldade) {
-      const msg = message.toLowerCase();
-
-      if (msg.includes('fácil') || msg.includes('facil') || msg.includes('simples')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'nivelDificuldade', 'facil');
-      } else if (msg.includes('médio') || msg.includes('medio') || msg.includes('normal')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'nivelDificuldade', 'medio');
-      } else if (msg.includes('difícil') || msg.includes('dificil') || msg.includes('avançado')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'nivelDificuldade', 'dificil');
+      // Atualizar dados coletados com o que foi extraído
+      for (const [key, value] of Object.entries(extractedData)) {
+        if (value) {
+          ConversationContextManager.updateCollectedData(sessionId, key, value);
+        }
       }
     }
   }
 
-  private static extractCalendarioInfo(sessionId: string, message: string) {
-    const collectedData = ConversationContextManager.getCollectedData(sessionId);
-    const msg = message.toLowerCase();
+  // Funções antigas de extração baseadas em keywords foram removidas
+  // Agora usamos extractDataFromMessage da OpenAIService que usa LLM
 
-    // Extrair período - versão simplificada
-    if (!collectedData.periodo) {
-      if (msg.includes('semanal') || msg.includes('semana')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'periodo', 'semanal');
-      } else if (msg.includes('mensal') || msg.includes('mês')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'periodo', 'mensal');
-      }
-    }
+  /**
+   * Infere o que o usuário quer continuar com base no histórico da conversa
+   */
+  private static async inferContinuationIntent(
+    conversationHistory: Array<{ sender: string; text: string }>,
+    sessionId: string
+  ): Promise<Intent | null> {
+    try {
+      const recentHistory = conversationHistory.slice(-6).map(msg =>
+        `${msg.sender === 'user' ? 'Professor' : 'Ane'}: ${msg.text}`
+      ).join('\n');
 
-    // Extrair datas simples
-    if (!collectedData.dataInicio) {
-      if (msg.includes('hoje') || msg.includes('amanhã') || msg.includes('segunda') || msg.includes('/')) {
-        ConversationContextManager.updateCollectedData(sessionId, 'dataInicio', message.trim());
+      const prompt = `Analise o histórico da conversa e identifique o que o professor quer continuar fazendo.
+
+HISTÓRICO:
+${recentHistory}
+
+O professor disse que quer "continuar". Com base no contexto, o que ele provavelmente quer fazer?
+
+OPÇÕES:
+- plano_aula: Quer criar/continuar criando um plano de aula
+- planejamento_semanal: Quer criar/continuar um planejamento semanal
+- tira_duvidas: Quer fazer perguntas/tirar dúvidas
+- null: Não há contexto claro do que continuar
+
+Analise:
+- O que a Ane sugeriu nas últimas mensagens?
+- Qual era o tópico da conversa?
+- Houve algum plano/tarefa mencionado?
+
+Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
+
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é um analisador de contexto conversacional.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 100,
+        temperature: 0.1
+      });
+
+      const result = response.choices[0]?.message?.content?.trim();
+      if (!result) return null;
+
+      const parsed = JSON.parse(result);
+      if (parsed.confidence >= 0.7 && parsed.intent !== 'null') {
+        return parsed.intent as Intent;
       }
+
+      return null;
+    } catch (error) {
+      console.error('Erro ao inferir intenção de continuação:', error);
+      return null;
     }
   }
 
@@ -260,7 +474,7 @@ export class MessageProcessor {
         return OpenAIService.generateResponse(message, sessionId);
 
       case 'saudacao':
-        return this.handleSaudacao();
+        return await this.handleSaudacao(message, sessionId);
 
       case 'despedida':
         return this.handleDespedida(sessionId);
@@ -284,13 +498,27 @@ export class MessageProcessor {
       const data = ConversationContextManager.getCollectedData(sessionId) as PlanoAulaData;
       const planoAula = await OpenAIService.generatePlanoAula(data, sessionId);
 
+      // Gerar resposta contextual e conversacional
+      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+      const contextualResponse = await OpenAIService.generateContextualResponse(
+        'plano_aula_completo',
+        {
+          collectedData: data,
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        },
+        sessionId
+      );
+
       // IMPORTANTE: Limpar completamente o contexto após gerar o plano
       ConversationContextManager.resetContextKeepingHistory(sessionId);
 
-      return `🎉 Pronto! Aqui está seu plano de aula personalizado:\n\n${planoAula}\n\n✨ Espero que seus alunos fiquem empolgados com essas atividades! \n\nQue tal agora? Quer criar outro plano, organizar seu calendário semanal, ou tem alguma dúvida pedagógica que posso esclarecer? Estou aqui para te apoiar! 😊`;
+      return `${contextualResponse}\n\n${planoAula}`;
     } else {
       // Ainda faltam dados, perguntar especificamente
-      return this.askForMissingPlanoAulaData(missingData, sessionId);
+      return await this.askForMissingPlanoAulaData(missingData, sessionId);
     }
   }
 
@@ -302,72 +530,224 @@ export class MessageProcessor {
       const data = ConversationContextManager.getCollectedData(sessionId) as PlanejamentoSemanalData;
       const planejamento = await OpenAIService.generatePlanejamentoSemanal(data, sessionId);
 
+      // Gerar resposta contextual e conversacional
+      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+      const contextualResponse = await OpenAIService.generateContextualResponse(
+        'planejamento_semanal_completo',
+        {
+          collectedData: data,
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        },
+        sessionId
+      );
+
       // IMPORTANTE: Limpar completamente o contexto após gerar o planejamento
       ConversationContextManager.resetContextKeepingHistory(sessionId);
 
-      return `📅 Incrível! Aqui está seu planejamento semanal:\n\n${planejamento}\n\n🚀 Com essa organização, sua semana vai ser muito mais produtiva e tranquila!\n\nQue tal agora? Quer criar um plano de aula para alguma dessas atividades, ou tem alguma dúvida sobre como implementar o planejamento? Estou aqui para te apoiar! ✨`;
+      return `${contextualResponse}\n\n${planejamento}`;
     } else {
       // Ainda faltam dados
-      return this.askForMissingPlanejamentoSemanalData(missingData, sessionId);
+      return await this.askForMissingPlanejamentoSemanalData(missingData, sessionId);
     }
   }
 
-  private static askForMissingPlanoAulaData(missingData: string[], sessionId: string): string {
+  private static async askForMissingPlanoAulaData(missingData: string[], sessionId: string): Promise<string> {
     const collectedData = ConversationContextManager.getCollectedData(sessionId);
+    const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+
+    let missingField: string;
+    let fieldKey: string;
 
     if (missingData.includes('ano')) {
-      const question = '🎯 Que empolgante! Vamos criar um plano de aula incrível! Para começar, me conta: para qual ano escolar será esse plano? (1º ao 9º ano, ou até ensino médio!)';
-      ConversationContextManager.setWaitingFor(sessionId, 'ano', question);
-      return question;
+      missingField = 'ano';
+      fieldKey = 'ano';
+    } else if (missingData.includes('tema ou habilidade BNCC')) {
+      missingField = 'tema ou habilidade BNCC';
+      fieldKey = 'tema';
+    } else if (missingData.includes('nível de dificuldade')) {
+      missingField = 'nível de dificuldade';
+      fieldKey = 'dificuldade';
+    } else {
+      return '😊 Estamos quase lá! Só preciso de mais algumas informações para criar um plano de aula perfeito para você!';
     }
 
-    if (missingData.includes('tema ou habilidade BNCC')) {
-      const question = `✨ Perfeito! ${collectedData.ano} é uma turma especial! Agora me conta: qual tema você quer abordar ou qual habilidade da BNCC vamos trabalhar? Pode ser algo que você já tem em mente ou posso sugerir ideias também! 😊`;
-      ConversationContextManager.setWaitingFor(sessionId, 'tema', question);
-      return question;
-    }
+    // Gera a pergunta conversacional usando a LLM
+    const question = await OpenAIService.generateConversationalQuestion(
+      missingField,
+      collectedData,
+      conversationHistory,
+      sessionId
+    );
 
-    if (missingData.includes('nível de dificuldade')) {
-      const question = `🚀 Ótima escolha de tema! Agora vamos calibrar a dificuldade para que os alunos se sintam desafiados mas confiantes. Você prefere atividades mais fáceis (para introduzir o tema), médias (para consolidar) ou difíceis (para expandir)? Qual seria ideal para sua turma?`;
-      ConversationContextManager.setWaitingFor(sessionId, 'dificuldade', question);
-      return question;
-    }
-
-    return '😊 Estamos quase lá! Só preciso de mais algumas informações para criar um plano de aula perfeito para você!';
+    ConversationContextManager.setWaitingFor(sessionId, fieldKey, question);
+    return question;
   }
 
-  private static askForMissingPlanejamentoSemanalData(missingData: string[], sessionId: string): string {
+  private static async askForMissingPlanejamentoSemanalData(missingData: string[], sessionId: string): Promise<string> {
+    const collectedData = ConversationContextManager.getCollectedData(sessionId);
+    const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+
+    let missingField: string;
+    let fieldKey: string;
+
     if (missingData.includes('data de início')) {
-      const question = '🗓️ Perfeito! Vamos organizar sua semana! A partir de quando começamos? Você quer planejar desta segunda-feira, da próxima semana, ou de uma data específica?';
-      ConversationContextManager.setWaitingFor(sessionId, 'data_inicio', question);
-      return question;
+      missingField = 'data de início';
+      fieldKey = 'data_inicio';
+    } else {
+      // Fallback para outros campos faltantes
+      return '🎯 Quase lá! Só mais alguns detalhes e vamos criar um planejamento semanal incrível para você!';
     }
 
-    return '🎯 Quase lá! Só mais alguns detalhes e vamos criar um planejamento semanal incrível para você!';
+    // Gera a pergunta conversacional usando a LLM
+    const question = await OpenAIService.generateConversationalQuestion(
+      missingField,
+      collectedData,
+      conversationHistory.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })),
+      sessionId
+    );
+
+    ConversationContextManager.setWaitingFor(sessionId, fieldKey, question);
+    return question;
   }
 
-  private static handleSaudacao(): string {
-    return `Oi! 👋 Que alegria te encontrar aqui! Sou seu assistente educacional e estou super animado para ajudar!
+  private static async handleSaudacao(message: string, sessionId: string): Promise<string> {
+    console.log('👋 [DEBUG] Processando saudação com mensagem estruturada da ANE');
 
-Sou especialista em apenas 3 coisas, mas faço elas muito bem:
+    // Verificar se é uma saudação simples ou se tem solicitação específica
+    const msg = message.toLowerCase().trim();
+    const saudacoesSimples = ['oi', 'olá', 'ola', 'eae', 'oii', 'e aí'];
+    const saudacoesComplementares = ['bom dia', 'boa tarde', 'boa noite', 'oi tudo bem', 'oi, tudo bem'];
 
-🎯 **Criar planos de aula personalizados** - com atividades incríveis para seus alunos!
-❓ **Tirar suas dúvidas educacionais** - metodologias, gestão de sala, estratégias...
-📅 **Planejar sua semana** - organização semanal para professores eficientes!
+    // Se for saudação simples, usar mensagem estruturada
+    if (saudacoesSimples.includes(msg) ||
+        saudacoesComplementares.some(saud => msg.includes(saud))) {
 
-O que você gostaria de fazer hoje? Por onde começamos? 😊`;
+      console.log('✅ [DEBUG] Saudação simples detectada, usando mensagem estruturada');
+
+      return `Oi, eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡
+Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?
+
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+
+Conte pra mim, como posso te ajudar hoje? 😊`;
+    }
+
+    // Se a mensagem for mais complexa (ex: "oi, quero um plano de aula"), usar LLM
+    console.log('🤖 [DEBUG] Saudação com solicitação detectada, processando com LLM');
+
+    try {
+      const { OpenAIService } = await import('./openai');
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const promptParaSaudacaoComSolicitacao = `
+A mensagem do professor combina uma saudação com uma solicitação específica: ${message}
+Reconheça o contexto da interação para decidir como prosseguir.
+
+➡️ Regras de comportamento:
+
+1. Sempre reconheça saudações e “small talk” (ex.: “oi, tudo bem?”, “bom dia!”, “tudo certo?”) antes de qualquer instrução, de forma natural e acolhedora.
+2. Sua apresentação deve sempre usar como base a mensagem abaixo, adaptando a linguagem para soar natural e próxima do professor:
+"Oi, eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡  
+Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?"
+
+3. Explique sempre o que você consegue fazer, mesmo quando houver uma solicitação.
+Liste claramente suas principais funções:
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬 Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+4. Se o professor já trouxer uma solicitação, adapte a explicação acima ao contexto e incentive que ele dê mais detalhes.
+5. Sempre finalize mostrando que é um prazer ajudar.  
+
+Assim, mesmo se o professor mandar apenas “Oi, tudo bem?”, a resposta pode ser:
+
+"Oi, tudo bem? Eu sou a ANE, sua assistente pedagógica 👩🏽‍🏫💡.
+Quero te mostrar rapidinho como posso te ajudar por aqui.
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬 Para começar, me conta o ano e o tema ou habilidade que você está planejando?
+Vai ser um prazer te ajudar!"
+
+E se o professor mandar “Oi, bom dia, me ajuda a planejar uma aula sobre frações para o 6º ano?”, a IA responde:
+
+Oi, bom dia! Eu sou a ANE, sua assistente pedagógica 👩🏽‍🏫💡.
+Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar rapidinho como posso te ajudar:
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬 Você mencionou frações para o 6º ano. Quer que eu sugira um planejamento completo com atividades ou prefere só ideias de metodologias para essa habilidade?`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: promptParaSaudacaoComSolicitacao },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      });
+
+      const botResponse = response.choices[0]?.message?.content ||
+        `Oi, eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡
+Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?
+
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+
+Conte pra mim, como posso te ajudar hoje? 😊`;
+
+      console.log('✅ [DEBUG] Resposta LLM para saudação complexa gerada');
+      return botResponse;
+
+    } catch (error) {
+      console.error('❌ [DEBUG] Erro no LLM para saudação:', error);
+      // Fallback para mensagem estruturada
+      return `Oi, eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡
+Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?
+
+👉🏽 Crio planejamentos de aula
+👉🏽 Trago ideias de metodologias e atividades
+👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
+💬Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+
+Conte pra mim, como posso te ajudar hoje? 😊`;
+    }
   }
 
-  private static handleDespedida(sessionId: string): string {
+  private static async handleDespedida(sessionId: string): Promise<string> {
+    const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+
+    const response = await OpenAIService.generateContextualResponse(
+      'despedida',
+      {
+        conversationHistory: conversationHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      },
+      sessionId
+    );
+
     ConversationContextManager.clearContext(sessionId);
-    return `Foi incrível trabalhar com você! 🌟 Tenho certeza de que seus alunos são sortudos por ter um professor(a) tão dedicado(a)!
-
-Volte sempre que quiser - estarei aqui pronto para mais planos de aula, dúvidas ou qualquer coisa que precisar. Sua educação sempre será minha prioridade!
-
-Boa aula e muito sucesso! 📚✨🎓`;
+    return response;
   }
 
-  private static handleSairIntent(sessionId: string): string {
+  private static async handleSairIntent(sessionId: string): Promise<string> {
     // Registrar a mensagem do usuário no histórico antes de resetar o contexto
     ConversationContextManager.addMessage(sessionId, {
       id: `user_${Date.now()}`,
@@ -377,19 +757,20 @@ Boa aula e muito sucesso! 📚✨🎓`;
       type: 'text'
     });
 
+    const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+
+    const response = await OpenAIService.generateContextualResponse(
+      'reiniciar',
+      {
+        conversationHistory: conversationHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      },
+      sessionId
+    );
+
     ConversationContextManager.resetContextKeepingHistory(sessionId);
-
-    const response = `🔄 Perfeito! Vamos recomeçar do zero!
-
-Todas as informações anteriores foram limpas e agora estamos com uma conversa fresquinha! 😊
-
-Sou seu assistente educacional e estou super animado para ajudar você com:
-
-🎯 **Criar planos de aula personalizados** - com atividades incríveis para seus alunos!
-❓ **Tirar suas dúvidas educacionais** - metodologias, gestão de sala, estratégias...
-📅 **Planejar sua semana** - organização semanal para professores eficientes!
-
-Por onde você gostaria de começar agora? ✨`;
 
     // Registrar a resposta do bot no histórico
     ConversationContextManager.addMessage(sessionId, {
@@ -415,56 +796,46 @@ Por onde você gostaria de começar agora? ✨`;
     const recentMessages = ConversationContextManager.getRecentUserMessages(sessionId, 5);
     const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
 
-    // Procurar por sugestões do bot nas últimas mensagens
-    const recentBotMessages = conversationHistory
-      .filter(msg => msg.sender === 'bot')
-      .slice(-3)
-      .map(msg => msg.text);
+    // Usar LLM para inferir o que o usuário quer continuar baseado no contexto
+    const inferredIntent = await this.inferContinuationIntent(conversationHistory, sessionId);
 
-    // Verificar se o bot sugeriu alguma das funcionalidades principais
-    for (const botMessage of recentBotMessages) {
-      const msg = botMessage.toLowerCase();
-      if (msg.includes('plano de aula') || msg.includes('plano para')) {
-        ConversationContextManager.updateIntent(sessionId, 'plano_aula', 0.9);
-        return this.handlePlanoAulaIntent(sessionId, 'quero continuar com plano de aula');
-      }
-      if (msg.includes('planejamento semanal') || msg.includes('organizar') || msg.includes('semana')) {
-        ConversationContextManager.updateIntent(sessionId, 'planejamento_semanal', 0.9);
-        return this.handlePlanejamentoSemanalIntent(sessionId, 'quero continuar com planejamento semanal');
-      }
-      if (msg.includes('dúvida') || msg.includes('pergunta') || msg.includes('esclarecer')) {
-        ConversationContextManager.updateIntent(sessionId, 'tira_duvidas', 0.9);
-        return OpenAIService.generateResponse(message, sessionId);
-      }
+    if (inferredIntent) {
+      ConversationContextManager.updateIntent(sessionId, inferredIntent, 0.9);
+      return this.generateResponseByIntent(message, sessionId, inferredIntent);
     }
 
-    // Se não conseguiu identificar contexto, fazer uma sugestão amigável
-    return `😊 Perfeito! Vejo que você quer continuar, mas preciso saber com o quê!
-
-Você gostaria de:
-
-🎯 **Criar um plano de aula** - para suas próximas aulas
-❓ **Tirar alguma dúvida** - sobre metodologias ou conteúdos
-📅 **Planejar sua semana** - organizar cronograma semanal
-
-Qual desses te interessa mais agora? ✨`;
+    // Se não conseguiu identificar contexto, gerar resposta contextual
+    return await OpenAIService.generateContextualResponse(
+      'continuar_sem_contexto',
+      {
+        message,
+        conversationHistory: conversationHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      },
+      sessionId
+    );
   }
 
   private static async handleUnclearIntent(message: string, sessionId: string): Promise<string> {
     const msg = message.toLowerCase();
+    const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
 
     // Se o usuário diz que não quer algo ou está negando
     if (msg.includes('não quero') || msg.includes('nao quero') ||
         msg.includes('não preciso') || msg.includes('nao preciso')) {
-      return `Tudo bem! Não tem problema nenhum. 😊
-
-Quando quiser, estarei aqui para te ajudar com:
-
-🎯 **Criar planos de aula personalizados**
-❓ **Tirar dúvidas sobre educação**
-📅 **Planejar sua semana de trabalho**
-
-É só falar comigo quando precisar de alguma dessas coisas! ✨`;
+      return await OpenAIService.generateContextualResponse(
+        'negacao',
+        {
+          message,
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        },
+        sessionId
+      );
     }
 
     // Verificar se parece uma pergunta (tira-dúvidas)
@@ -476,15 +847,17 @@ Quando quiser, estarei aqui para te ajudar com:
       return await OpenAIService.generateResponse(message, sessionId);
     }
 
-    // Fallback geral
-    return `Hmm, não consegui entender exatamente o que você precisa! 🤔
-
-Lembre-se, sou especialista em apenas 3 coisas:
-
-🎯 **Criar planos de aula** - Diga algo como "preciso de um plano de aula"
-❓ **Tirar dúvidas** - Pergunte qualquer coisa sobre educação
-📅 **Planejar a semana** - Diga "quero organizar minha semana"
-
-Qual dessas opções te interessaria agora? Ou se tiver uma dúvida educacional específica, pode perguntar diretamente! 😊`;
+    // Fallback geral - intenção não clara
+    return await OpenAIService.generateContextualResponse(
+      'unclear_intent',
+      {
+        message,
+        conversationHistory: conversationHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+      },
+      sessionId
+    );
   }
 }
