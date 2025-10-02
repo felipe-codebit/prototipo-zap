@@ -1,0 +1,2320 @@
+{
+  "settings": {
+    "languages": [
+      "pt"
+    ],
+    "forceNER": true,
+    "tag": "nlp",
+    "threshold": 0.5,
+    "autoLoad": true,
+    "autoSave": true,
+    "modelFileName": "model.nlp",
+    "executeActionsBeforeAnswers": false,
+    "calculateSentiment": true
+  },
+  "nluManager": {
+    "settings": {
+      "tag": "nlu-manager"
+    },
+    "locales": [
+      "pt"
+    ],
+    "languageNames": {},
+    "domainManagers": {
+      "pt": {
+        "settings": {
+          "locale": "pt",
+          "trainByDomain": false,
+          "tag": "domain-manager-pt",
+          "nluByDomain": {
+            "default": {
+              "className": "NeuralNlu",
+              "settings": {}
+            }
+          },
+          "useStemDict": true
+        },
+        "stemDict": {
+          "aul,de,plan,precis,um": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,cri,de,plan,quer,um": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "ajud,aul,com,de,me,plan,um": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,de,ger,plan": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "ativ,aul,cri,par": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,de,planej": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "ativ,educacion": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,com,de,faz,plan,um": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,dar,sobr,vou": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,estou,prepar,uma": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,faz,legal,quer,uma": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "aul,de,ide,par,precis": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "com,ensin,poss": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "ativ,ensin,par": {
+            "intent": "plano_aula",
+            "domain": "default"
+          },
+          "duv,tenh,uma": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "entend,isso,nao": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "explic,me": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "com,funcion": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "e,o,que": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "ajud,de,precis": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "ajud,me,pod": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "com,faz,nao,sei": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "com,dificuldad,estou": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "esta,funcion,nao": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "com,melhor,poss": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "a,form,melhor,qual": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "sab,sobr,voc": {
+            "intent": "tira_duvidas",
+            "domain": "default"
+          },
+          "calendari,escol": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "planej,semanal": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "minh,organiz,seman": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "aul,cronogram,de": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "agend,escol": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "ativ,planej": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "aul,das,horari": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "me,organiz,quer": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "meu,organiz,precis,temp": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "as,aul,com,organiz": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "cronogram,faz": {
+            "intent": "calendario_escolar",
+            "domain": "default"
+          },
+          "oi": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "ola": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "bom,dia": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "boa,tard": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "boa,noit": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "ai,e": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "eae": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "bem,oi,tud": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "com,vai": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "com,esta,ola": {
+            "intent": "saudacao",
+            "domain": "default"
+          },
+          "tchau": {
+            "intent": "despedida",
+            "domain": "default"
+          },
+          "ate,log": {
+            "intent": "despedida",
+            "domain": "default"
+          },
+          "obrig": {
+            "intent": "despedida",
+            "domain": "default"
+          },
+          "val": {
+            "intent": "despedida",
+            "domain": "default"
+          },
+          "ate,mais": {
+            "intent": "despedida",
+            "domain": "default"
+          }
+        },
+        "intentDict": {
+          "plano_aula": "default",
+          "tira_duvidas": "default",
+          "calendario_escolar": "default",
+          "saudacao": "default",
+          "despedida": "default"
+        },
+        "sentences": [
+          {
+            "domain": "default",
+            "utterance": "preciso de um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero criar um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "me ajuda com um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "gerar plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "criar atividades para aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejamento de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "atividades educacionais",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "como fazer um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "vou dar aula sobre",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "estou preparando uma aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero fazer uma aula legal",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso de ideias para aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "como posso ensinar",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "atividades para ensinar",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "tenho uma dúvida",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não entendo isso",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "me explica",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "como funciona",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "o que é",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso de ajuda",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "pode me ajudar",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não sei como fazer",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "estou com dificuldade",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não está funcionando",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "como posso melhorar",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "qual a melhor forma",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "você sabe sobre",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "calendário escolar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejamento semanal",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "organizar minha semana",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "cronograma de aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "agenda escolar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejar atividades",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "horário das aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero me organizar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso organizar meu tempo",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "como organizar as aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "fazer cronograma",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "oi",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "olá",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "bom dia",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "boa tarde",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "boa noite",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "e aí",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "eae",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "oi tudo bem",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "como vai",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "olá como está",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "tchau",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "até logo",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "obrigado",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "valeu",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "até mais",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso de um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero criar um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "me ajuda com um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "gerar plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "criar atividades para aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejamento de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "atividades educacionais",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "como fazer um plano de aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "vou dar aula sobre",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "estou preparando uma aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero fazer uma aula legal",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso de ideias para aula",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "como posso ensinar",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "atividades para ensinar",
+            "intent": "plano_aula"
+          },
+          {
+            "domain": "default",
+            "utterance": "tenho uma dúvida",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não entendo isso",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "me explica",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "como funciona",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "o que é",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso de ajuda",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "pode me ajudar",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não sei como fazer",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "estou com dificuldade",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "não está funcionando",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "como posso melhorar",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "qual a melhor forma",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "você sabe sobre",
+            "intent": "tira_duvidas"
+          },
+          {
+            "domain": "default",
+            "utterance": "calendário escolar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejamento semanal",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "organizar minha semana",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "cronograma de aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "agenda escolar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "planejar atividades",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "horário das aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "quero me organizar",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "preciso organizar meu tempo",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "como organizar as aulas",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "fazer cronograma",
+            "intent": "calendario_escolar"
+          },
+          {
+            "domain": "default",
+            "utterance": "oi",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "olá",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "bom dia",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "boa tarde",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "boa noite",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "e aí",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "eae",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "oi tudo bem",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "como vai",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "olá como está",
+            "intent": "saudacao"
+          },
+          {
+            "domain": "default",
+            "utterance": "tchau",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "até logo",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "obrigado",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "valeu",
+            "intent": "despedida"
+          },
+          {
+            "domain": "default",
+            "utterance": "até mais",
+            "intent": "despedida"
+          }
+        ],
+        "domains": {
+          "master_domain": {
+            "settings": {
+              "locale": "pt",
+              "tag": "nlu-pt",
+              "keepStopwords": true,
+              "nonefeatureValue": 1,
+              "nonedeltaMultiplier": 1.2,
+              "spellCheck": false,
+              "spellCheckDistance": 1,
+              "filterZeros": true,
+              "log": true
+            },
+            "features": {
+              "precis": 1,
+              "de": 1,
+              "um": 1,
+              "plan": 1,
+              "aul": 1,
+              "quer": 1,
+              "cri": 1,
+              "me": 1,
+              "ajud": 1,
+              "com": 1,
+              "ger": 1,
+              "ativ": 1,
+              "par": 1,
+              "planej": 1,
+              "educacion": 1,
+              "faz": 1,
+              "vou": 1,
+              "dar": 1,
+              "sobr": 1,
+              "estou": 1,
+              "prepar": 1,
+              "uma": 1,
+              "legal": 1,
+              "ide": 1,
+              "poss": 1,
+              "ensin": 1,
+              "tenh": 1,
+              "duv": 1,
+              "nao": 1,
+              "entend": 1,
+              "isso": 1,
+              "explic": 1,
+              "funcion": 1,
+              "o": 1,
+              "que": 1,
+              "e": 1,
+              "pod": 1,
+              "sei": 1,
+              "dificuldad": 1,
+              "esta": 1,
+              "melhor": 1,
+              "qual": 1,
+              "a": 1,
+              "form": 1,
+              "voc": 1,
+              "sab": 1,
+              "calendari": 1,
+              "escol": 1,
+              "semanal": 1,
+              "organiz": 1,
+              "minh": 1,
+              "seman": 1,
+              "cronogram": 1,
+              "agend": 1,
+              "horari": 1,
+              "das": 1,
+              "meu": 1,
+              "temp": 1,
+              "as": 1,
+              "oi": 1,
+              "ola": 1,
+              "bom": 1,
+              "dia": 1,
+              "boa": 1,
+              "tard": 1,
+              "noit": 1,
+              "ai": 1,
+              "eae": 1,
+              "tud": 1,
+              "bem": 1,
+              "vai": 1,
+              "tchau": 1,
+              "ate": 1,
+              "log": 1,
+              "obrig": 1,
+              "val": 1,
+              "mais": 1
+            },
+            "intents": {
+              "plano_aula": 1,
+              "tira_duvidas": 1,
+              "calendario_escolar": 1,
+              "saudacao": 1,
+              "despedida": 1
+            },
+            "intentFeatures": {
+              "plano_aula": {
+                "precis": 1,
+                "de": 1,
+                "um": 1,
+                "plan": 1,
+                "aul": 1,
+                "quer": 1,
+                "cri": 1,
+                "me": 1,
+                "ajud": 1,
+                "com": 1,
+                "ger": 1,
+                "ativ": 1,
+                "par": 1,
+                "planej": 1,
+                "educacion": 1,
+                "faz": 1,
+                "vou": 1,
+                "dar": 1,
+                "sobr": 1,
+                "estou": 1,
+                "prepar": 1,
+                "uma": 1,
+                "legal": 1,
+                "ide": 1,
+                "poss": 1,
+                "ensin": 1
+              },
+              "tira_duvidas": {
+                "tenh": 1,
+                "uma": 1,
+                "duv": 1,
+                "nao": 1,
+                "entend": 1,
+                "isso": 1,
+                "me": 1,
+                "explic": 1,
+                "com": 1,
+                "funcion": 1,
+                "o": 1,
+                "que": 1,
+                "e": 1,
+                "precis": 1,
+                "de": 1,
+                "ajud": 1,
+                "pod": 1,
+                "sei": 1,
+                "faz": 1,
+                "estou": 1,
+                "dificuldad": 1,
+                "esta": 1,
+                "poss": 1,
+                "melhor": 1,
+                "qual": 1,
+                "a": 1,
+                "form": 1,
+                "voc": 1,
+                "sab": 1,
+                "sobr": 1
+              },
+              "calendario_escolar": {
+                "calendari": 1,
+                "escol": 1,
+                "planej": 1,
+                "semanal": 1,
+                "organiz": 1,
+                "minh": 1,
+                "seman": 1,
+                "cronogram": 1,
+                "de": 1,
+                "aul": 1,
+                "agend": 1,
+                "ativ": 1,
+                "horari": 1,
+                "das": 1,
+                "quer": 1,
+                "me": 1,
+                "precis": 1,
+                "meu": 1,
+                "temp": 1,
+                "com": 1,
+                "as": 1,
+                "faz": 1
+              },
+              "saudacao": {
+                "oi": 1,
+                "ola": 1,
+                "bom": 1,
+                "dia": 1,
+                "boa": 1,
+                "tard": 1,
+                "noit": 1,
+                "e": 1,
+                "ai": 1,
+                "eae": 1,
+                "tud": 1,
+                "bem": 1,
+                "com": 1,
+                "vai": 1,
+                "esta": 1
+              },
+              "despedida": {
+                "tchau": 1,
+                "ate": 1,
+                "log": 1,
+                "obrig": 1,
+                "val": 1,
+                "mais": 1
+              }
+            },
+            "featuresToIntent": {
+              "precis": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar"
+              ],
+              "de": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar"
+              ],
+              "um": [
+                "plano_aula"
+              ],
+              "plan": [
+                "plano_aula"
+              ],
+              "aul": [
+                "plano_aula",
+                "calendario_escolar"
+              ],
+              "quer": [
+                "plano_aula",
+                "calendario_escolar"
+              ],
+              "cri": [
+                "plano_aula"
+              ],
+              "me": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar"
+              ],
+              "ajud": [
+                "plano_aula",
+                "tira_duvidas"
+              ],
+              "com": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar",
+                "saudacao"
+              ],
+              "ger": [
+                "plano_aula"
+              ],
+              "ativ": [
+                "plano_aula",
+                "calendario_escolar"
+              ],
+              "par": [
+                "plano_aula"
+              ],
+              "planej": [
+                "plano_aula",
+                "calendario_escolar"
+              ],
+              "educacion": [
+                "plano_aula"
+              ],
+              "faz": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar"
+              ],
+              "vou": [
+                "plano_aula"
+              ],
+              "dar": [
+                "plano_aula"
+              ],
+              "sobr": [
+                "plano_aula",
+                "tira_duvidas"
+              ],
+              "estou": [
+                "plano_aula",
+                "tira_duvidas"
+              ],
+              "prepar": [
+                "plano_aula"
+              ],
+              "uma": [
+                "plano_aula",
+                "tira_duvidas"
+              ],
+              "legal": [
+                "plano_aula"
+              ],
+              "ide": [
+                "plano_aula"
+              ],
+              "poss": [
+                "plano_aula",
+                "tira_duvidas"
+              ],
+              "ensin": [
+                "plano_aula"
+              ],
+              "tenh": [
+                "tira_duvidas"
+              ],
+              "duv": [
+                "tira_duvidas"
+              ],
+              "nao": [
+                "tira_duvidas"
+              ],
+              "entend": [
+                "tira_duvidas"
+              ],
+              "isso": [
+                "tira_duvidas"
+              ],
+              "explic": [
+                "tira_duvidas"
+              ],
+              "funcion": [
+                "tira_duvidas"
+              ],
+              "o": [
+                "tira_duvidas"
+              ],
+              "que": [
+                "tira_duvidas"
+              ],
+              "e": [
+                "tira_duvidas",
+                "saudacao"
+              ],
+              "pod": [
+                "tira_duvidas"
+              ],
+              "sei": [
+                "tira_duvidas"
+              ],
+              "dificuldad": [
+                "tira_duvidas"
+              ],
+              "esta": [
+                "tira_duvidas",
+                "saudacao"
+              ],
+              "melhor": [
+                "tira_duvidas"
+              ],
+              "qual": [
+                "tira_duvidas"
+              ],
+              "a": [
+                "tira_duvidas"
+              ],
+              "form": [
+                "tira_duvidas"
+              ],
+              "voc": [
+                "tira_duvidas"
+              ],
+              "sab": [
+                "tira_duvidas"
+              ],
+              "calendari": [
+                "calendario_escolar"
+              ],
+              "escol": [
+                "calendario_escolar"
+              ],
+              "semanal": [
+                "calendario_escolar"
+              ],
+              "organiz": [
+                "calendario_escolar"
+              ],
+              "minh": [
+                "calendario_escolar"
+              ],
+              "seman": [
+                "calendario_escolar"
+              ],
+              "cronogram": [
+                "calendario_escolar"
+              ],
+              "agend": [
+                "calendario_escolar"
+              ],
+              "horari": [
+                "calendario_escolar"
+              ],
+              "das": [
+                "calendario_escolar"
+              ],
+              "meu": [
+                "calendario_escolar"
+              ],
+              "temp": [
+                "calendario_escolar"
+              ],
+              "as": [
+                "calendario_escolar"
+              ],
+              "oi": [
+                "saudacao"
+              ],
+              "ola": [
+                "saudacao"
+              ],
+              "bom": [
+                "saudacao"
+              ],
+              "dia": [
+                "saudacao"
+              ],
+              "boa": [
+                "saudacao"
+              ],
+              "tard": [
+                "saudacao"
+              ],
+              "noit": [
+                "saudacao"
+              ],
+              "ai": [
+                "saudacao"
+              ],
+              "eae": [
+                "saudacao"
+              ],
+              "tud": [
+                "saudacao"
+              ],
+              "bem": [
+                "saudacao"
+              ],
+              "vai": [
+                "saudacao"
+              ],
+              "tchau": [
+                "despedida"
+              ],
+              "ate": [
+                "despedida"
+              ],
+              "log": [
+                "despedida"
+              ],
+              "obrig": [
+                "despedida"
+              ],
+              "val": [
+                "despedida"
+              ],
+              "mais": [
+                "despedida"
+              ]
+            },
+            "neuralNetwork": {
+              "settings": {
+                "locale": "pt",
+                "tag": "nlu-pt",
+                "keepStopwords": true,
+                "nonefeatureValue": 1,
+                "nonedeltaMultiplier": 1.2,
+                "spellCheck": false,
+                "spellCheckDistance": 1,
+                "filterZeros": true,
+                "log": true
+              },
+              "features": [
+                "precis",
+                "de",
+                "um",
+                "plan",
+                "aul",
+                "quer",
+                "cri",
+                "me",
+                "ajud",
+                "com",
+                "ger",
+                "ativ",
+                "par",
+                "planej",
+                "educacion",
+                "faz",
+                "vou",
+                "dar",
+                "sobr",
+                "estou",
+                "prepar",
+                "uma",
+                "legal",
+                "ide",
+                "poss",
+                "ensin",
+                "tenh",
+                "duv",
+                "nao",
+                "entend",
+                "isso",
+                "explic",
+                "funcion",
+                "o",
+                "que",
+                "e",
+                "pod",
+                "sei",
+                "dificuldad",
+                "esta",
+                "melhor",
+                "qual",
+                "a",
+                "form",
+                "voc",
+                "sab",
+                "calendari",
+                "escol",
+                "semanal",
+                "organiz",
+                "minh",
+                "seman",
+                "cronogram",
+                "agend",
+                "horari",
+                "das",
+                "meu",
+                "temp",
+                "as",
+                "oi",
+                "ola",
+                "bom",
+                "dia",
+                "boa",
+                "tard",
+                "noit",
+                "ai",
+                "eae",
+                "tud",
+                "bem",
+                "vai",
+                "tchau",
+                "ate",
+                "log",
+                "obrig",
+                "val",
+                "mais"
+              ],
+              "intents": [
+                "plano_aula",
+                "tira_duvidas",
+                "calendario_escolar",
+                "saudacao",
+                "despedida"
+              ],
+              "perceptrons": [
+                [
+                  -1.0223482847213745,
+                  3.6980512142181396,
+                  1.013510823249817,
+                  1.299824595451355,
+                  10.353161811828613,
+                  -1.0247918367385864,
+                  0.3286290168762207,
+                  1.3621838092803955,
+                  -1.4848562479019165,
+                  -0.7011005878448486,
+                  0.29272815585136414,
+                  0.8770534992218018,
+                  3.8568177223205566,
+                  0.9186826348304749,
+                  14.439009666442871,
+                  -0.14025624096393585,
+                  2.0570478439331055,
+                  2.0570478439331055,
+                  1.036670207977295,
+                  0.30870476365089417,
+                  1.7075583934783936,
+                  3.147300958633423,
+                  3.106086015701294,
+                  -1.2205177545547485,
+                  5.589693069458008,
+                  10.645869255065918,
+                  -1.6545006036758423,
+                  -1.6545006036758423,
+                  -1.236713171005249,
+                  -0.41645023226737976,
+                  -0.41645023226737976,
+                  -0.9204612970352173,
+                  -0.9647874236106873,
+                  -0.4798421263694763,
+                  -0.4798421263694763,
+                  -0.5105122327804565,
+                  -0.49189460277557373,
+                  -0.5501757264137268,
+                  -1.3907924890518188,
+                  -0.1619415134191513,
+                  -4.378833293914795,
+                  -0.21661661565303802,
+                  -0.21661661565303802,
+                  -0.21661661565303802,
+                  -1.0052380561828613,
+                  -1.0052380561828613,
+                  -0.3549962341785431,
+                  -0.5601780414581299,
+                  -0.780773401260376,
+                  -4.477485179901123,
+                  -0.15018002688884735,
+                  -0.15018002688884735,
+                  -12.677473068237305,
+                  -0.1673557162284851,
+                  -4.532257556915283,
+                  -4.532257556915283,
+                  -0.01870914176106453,
+                  -0.01870914176106453,
+                  -3.907917022705078,
+                  -0.08959019184112549,
+                  -0.0783856138586998,
+                  -0.04693712294101715,
+                  -0.04693712294101715,
+                  -0.08972267061471939,
+                  -0.041711319237947464,
+                  -0.03731565549969673,
+                  -0.011375009082257748,
+                  -0.05143031105399132,
+                  -0.026275673881173134,
+                  -0.026275673881173134,
+                  -0.02644532173871994,
+                  -0.04560120031237602,
+                  -0.06755232810974121,
+                  -0.0325494185090065,
+                  -0.04605574533343315,
+                  -0.044400401413440704,
+                  -0.026425568386912346,
+                  -1.2630345964258463
+                ],
+                [
+                  5.222525596618652,
+                  1.5333997011184692,
+                  -4.374145984649658,
+                  -4.374145984649658,
+                  -8.086141586303711,
+                  -2.0080645084381104,
+                  -0.019883763045072556,
+                  4.302946090698242,
+                  5.424535274505615,
+                  3.470024347305298,
+                  0,
+                  -1.6064285039901733,
+                  -0.41886794567108154,
+                  -2.228672742843628,
+                  -0.5818213224411011,
+                  0.40249311923980713,
+                  -0.0014851598534733057,
+                  -0.0014851598534733057,
+                  4.058676719665527,
+                  3.6733710765838623,
+                  -1.361080527305603,
+                  3.150378704071045,
+                  0,
+                  -0.3551071882247925,
+                  0.6132557988166809,
+                  -6.18412971496582,
+                  4.515634059906006,
+                  4.515634059906006,
+                  5.865111827850342,
+                  3.1574881076812744,
+                  3.1574881076812744,
+                  7.878168106079102,
+                  8.703572273254395,
+                  5.296471118927002,
+                  5.296471118927002,
+                  1.5881739854812622,
+                  2.4535396099090576,
+                  2.443075180053711,
+                  5.038623809814453,
+                  -2.3836843967437744,
+                  8.095847129821777,
+                  1.3619649410247803,
+                  1.3619649410247803,
+                  1.3619649410247803,
+                  4.061268329620361,
+                  4.061268329620361,
+                  -1.252713680267334,
+                  -2.3986337184906006,
+                  -1.2339709997177124,
+                  -4.740315914154053,
+                  -0.6334391236305237,
+                  -0.6334391236305237,
+                  -2.6672961711883545,
+                  -1.036224365234375,
+                  -0.4530107378959656,
+                  -0.4530107378959656,
+                  -1.2932554483413696,
+                  -1.2932554483413696,
+                  -0.5431360006332397,
+                  -2.3876891136169434,
+                  -3.7478249073028564,
+                  -1.37857186794281,
+                  -1.37857186794281,
+                  -1.980918288230896,
+                  -1.0110834836959839,
+                  -0.9176996946334839,
+                  -3.7080163955688477,
+                  -2.17143177986145,
+                  -0.543438196182251,
+                  -0.543438196182251,
+                  -5.570613384246826,
+                  -2.1124703884124756,
+                  -1.5727460384368896,
+                  -0.8422186374664307,
+                  -2.1079604625701904,
+                  -2.1060168743133545,
+                  -0.7084201574325562,
+                  2.104268344772193
+                ],
+                [
+                  0.10106191039085388,
+                  -5.337780475616455,
+                  -1.6407228708267212,
+                  -2.293605327606201,
+                  -0.48267725110054016,
+                  1.8386104106903076,
+                  -2.732592821121216,
+                  0.7037729620933533,
+                  -1.4511741399765015,
+                  -0.5254639983177185,
+                  -0.6046520471572876,
+                  7.152566909790039,
+                  -5.338400840759277,
+                  5.129065990447998,
+                  -8.294105529785156,
+                  -4.948758602142334,
+                  -0.8708243370056152,
+                  -0.8708243370056152,
+                  -1.1821154356002808,
+                  -0.7092798948287964,
+                  -0.5234352350234985,
+                  -2.5658204555511475,
+                  -1.8470045328140259,
+                  -0.24790151417255402,
+                  -0.31837958097457886,
+                  -3.101536273956299,
+                  -0.13618969917297363,
+                  -0.13618969917297363,
+                  -1.1587668657302856,
+                  -0.4252823293209076,
+                  -0.4252823293209076,
+                  -2.2451493740081787,
+                  -0.854469358921051,
+                  -0.2078162282705307,
+                  -0.2078162282705307,
+                  -1.3984943628311157,
+                  -0.8858382105827332,
+                  -0.6343813538551331,
+                  -0.14814870059490204,
+                  -0.587591826915741,
+                  -0.539124071598053,
+                  -0.42956915497779846,
+                  -0.42956915497779846,
+                  -0.42956915497779846,
+                  -0.28043460845947266,
+                  -0.28043460845947266,
+                  4.312692165374756,
+                  8.585902214050293,
+                  7.718235015869141,
+                  10.300222396850586,
+                  1.301931381225586,
+                  1.301931381225586,
+                  18.115520477294922,
+                  4.272670745849609,
+                  6.652678966522217,
+                  6.652678966522217,
+                  1.2208986282348633,
+                  1.2208986282348633,
+                  3.5297374725341797,
+                  -2.2972753047943115,
+                  -2.2098093032836914,
+                  -1.3075443506240845,
+                  -1.3075443506240845,
+                  -1.927233099937439,
+                  -0.9669896960258484,
+                  -0.8701986074447632,
+                  -1.168323040008545,
+                  -2.030440092086792,
+                  -0.5628175139427185,
+                  -0.5628175139427185,
+                  -1.2215639352798462,
+                  -1.9875133037567139,
+                  -1.6431267261505127,
+                  -0.8820620775222778,
+                  -1.9597461223602295,
+                  -1.9407612085342407,
+                  -0.7286675572395325,
+                  1.4300120095474418
+                ],
+                [
+                  -1.291595220565796,
+                  -1.7042105197906494,
+                  -0.8056913614273071,
+                  -0.9978875517845154,
+                  -3.0399627685546875,
+                  -0.445371150970459,
+                  -0.4910208582878113,
+                  -2.560737371444702,
+                  -1.2344615459442139,
+                  0.3276059329509735,
+                  -0.11426252126693726,
+                  -2.553100347518921,
+                  -0.6927862763404846,
+                  -2.2918808460235596,
+                  -1.6767202615737915,
+                  -2.5754334926605225,
+                  -0.3925272822380066,
+                  -0.3925272822380066,
+                  -1.6969947814941406,
+                  -2.4715752601623535,
+                  -0.21534955501556396,
+                  -1.6931982040405273,
+                  -0.09538876265287399,
+                  0,
+                  -2.800170421600342,
+                  -2.104994773864746,
+                  -1.2685949802398682,
+                  -1.2685949802398682,
+                  -2.398491621017456,
+                  -0.9159250855445862,
+                  -0.9159250855445862,
+                  -1.6688898801803589,
+                  -4.625940322875977,
+                  -3.70280122756958,
+                  -3.70280122756958,
+                  3.1752195358276367,
+                  -0.5194140672683716,
+                  -0.6628960967063904,
+                  -2.1923649311065674,
+                  -0.2714025676250458,
+                  -1.8938884735107422,
+                  -0.7788435220718384,
+                  -0.7788435220718384,
+                  -0.7788435220718384,
+                  -1.2665505409240723,
+                  -1.2665505409240723,
+                  -1.4102236032485962,
+                  -2.819955825805664,
+                  -1.93741774559021,
+                  -1.8373695611953735,
+                  -1.1963207721710205,
+                  -1.1963207721710205,
+                  -1.6535733938217163,
+                  -1.4096407890319824,
+                  -0.5949244499206543,
+                  -0.5949244499206543,
+                  -0.5507411360740662,
+                  -0.5507411360740662,
+                  0,
+                  10.037179946899414,
+                  10.015400886535645,
+                  5.026821613311768,
+                  5.026821613311768,
+                  6.7022247314453125,
+                  3.3510780334472656,
+                  3.3511972427368164,
+                  6.878081798553467,
+                  10.055110931396484,
+                  0.011375511065125465,
+                  0.011375511065125465,
+                  9.712963104248047,
+                  -4.227994918823242,
+                  -2.8594970703125,
+                  -1.4585363864898682,
+                  -4.227533340454102,
+                  -4.2270426750183105,
+                  -1.370672345161438,
+                  4.231396290164166
+                ],
+                [
+                  -1.0166865587234497,
+                  -1.2113189697265625,
+                  -0.4390091001987457,
+                  -0.6012409329414368,
+                  -2.2060182094573975,
+                  -0.36155858635902405,
+                  -0.3387845754623413,
+                  -1.9402520656585693,
+                  -0.9698614478111267,
+                  -2.510002374649048,
+                  -0.12274377048015594,
+                  -1.9780001640319824,
+                  -0.6044532656669617,
+                  -1.757399320602417,
+                  -1.219275712966919,
+                  -1.7279624938964844,
+                  -0.2921270430088043,
+                  -0.2921270430088043,
+                  -1.2813925743103027,
+                  -0.6311109662055969,
+                  -0.19519954919815063,
+                  -1.294537901878357,
+                  -0.09518170356750488,
+                  -0.004418438766151667,
+                  -0.583433210849762,
+                  -0.8291987180709839,
+                  -0.9518015384674072,
+                  -0.9518015384674072,
+                  -1.5298641920089722,
+                  -0.8347740173339844,
+                  -0.8347740173339844,
+                  -1.2566983699798584,
+                  -1.1159803867340088,
+                  -0.8104913234710693,
+                  -0.8104913234710693,
+                  -2.010056495666504,
+                  -0.461490273475647,
+                  -0.11378663778305054,
+                  -0.40518176555633545,
+                  -0.5519282817840576,
+                  -0.9136174321174622,
+                  -0.7614334225654602,
+                  -0.7614334225654602,
+                  -0.7614334225654602,
+                  -0.9581801295280457,
+                  -0.9581801295280457,
+                  -1.083766222000122,
+                  -2.1403615474700928,
+                  -1.4391330480575562,
+                  -1.3989002704620361,
+                  -0.8992313146591187,
+                  -0.8992313146591187,
+                  -1.46799898147583,
+                  -1.0559130907058716,
+                  -0.4955625534057617,
+                  -0.4955625534057617,
+                  -0.3908536732196808,
+                  -0.3908536732196808,
+                  0,
+                  -3.1906898021698,
+                  -3.190438985824585,
+                  -1.5954753160476685,
+                  -1.5954753160476685,
+                  -2.1280343532562256,
+                  -1.0650697946548462,
+                  -1.0629158020019531,
+                  -1.1808935403823853,
+                  -3.190095901489258,
+                  -0.452066034078598,
+                  -0.452066034078598,
+                  -0.6808788776397705,
+                  11.094439506530762,
+                  7.396512985229492,
+                  3.698594808578491,
+                  11.094319343566895,
+                  11.093985557556152,
+                  3.6979312896728516,
+                  3.1909823601844143
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "intentDomains": {},
+    "extraSentences": [
+      [
+        "pt",
+        "preciso de um plano de aula"
+      ],
+      [
+        "pt",
+        "quero criar um plano de aula"
+      ],
+      [
+        "pt",
+        "me ajuda com um plano de aula"
+      ],
+      [
+        "pt",
+        "gerar plano de aula"
+      ],
+      [
+        "pt",
+        "criar atividades para aula"
+      ],
+      [
+        "pt",
+        "planejamento de aula"
+      ],
+      [
+        "pt",
+        "atividades educacionais"
+      ],
+      [
+        "pt",
+        "como fazer um plano de aula"
+      ],
+      [
+        "pt",
+        "vou dar aula sobre"
+      ],
+      [
+        "pt",
+        "estou preparando uma aula"
+      ],
+      [
+        "pt",
+        "quero fazer uma aula legal"
+      ],
+      [
+        "pt",
+        "preciso de ideias para aula"
+      ],
+      [
+        "pt",
+        "como posso ensinar"
+      ],
+      [
+        "pt",
+        "atividades para ensinar"
+      ],
+      [
+        "pt",
+        "tenho uma dúvida"
+      ],
+      [
+        "pt",
+        "não entendo isso"
+      ],
+      [
+        "pt",
+        "me explica"
+      ],
+      [
+        "pt",
+        "como funciona"
+      ],
+      [
+        "pt",
+        "o que é"
+      ],
+      [
+        "pt",
+        "preciso de ajuda"
+      ],
+      [
+        "pt",
+        "pode me ajudar"
+      ],
+      [
+        "pt",
+        "não sei como fazer"
+      ],
+      [
+        "pt",
+        "estou com dificuldade"
+      ],
+      [
+        "pt",
+        "não está funcionando"
+      ],
+      [
+        "pt",
+        "como posso melhorar"
+      ],
+      [
+        "pt",
+        "qual a melhor forma"
+      ],
+      [
+        "pt",
+        "você sabe sobre"
+      ],
+      [
+        "pt",
+        "calendário escolar"
+      ],
+      [
+        "pt",
+        "planejamento semanal"
+      ],
+      [
+        "pt",
+        "organizar minha semana"
+      ],
+      [
+        "pt",
+        "cronograma de aulas"
+      ],
+      [
+        "pt",
+        "agenda escolar"
+      ],
+      [
+        "pt",
+        "planejar atividades"
+      ],
+      [
+        "pt",
+        "horário das aulas"
+      ],
+      [
+        "pt",
+        "quero me organizar"
+      ],
+      [
+        "pt",
+        "preciso organizar meu tempo"
+      ],
+      [
+        "pt",
+        "como organizar as aulas"
+      ],
+      [
+        "pt",
+        "fazer cronograma"
+      ],
+      [
+        "pt",
+        "oi"
+      ],
+      [
+        "pt",
+        "olá"
+      ],
+      [
+        "pt",
+        "bom dia"
+      ],
+      [
+        "pt",
+        "boa tarde"
+      ],
+      [
+        "pt",
+        "boa noite"
+      ],
+      [
+        "pt",
+        "e aí"
+      ],
+      [
+        "pt",
+        "eae"
+      ],
+      [
+        "pt",
+        "oi tudo bem"
+      ],
+      [
+        "pt",
+        "como vai"
+      ],
+      [
+        "pt",
+        "olá como está"
+      ],
+      [
+        "pt",
+        "tchau"
+      ],
+      [
+        "pt",
+        "até logo"
+      ],
+      [
+        "pt",
+        "obrigado"
+      ],
+      [
+        "pt",
+        "valeu"
+      ],
+      [
+        "pt",
+        "até mais"
+      ],
+      [
+        "pt",
+        "preciso de um plano de aula"
+      ],
+      [
+        "pt",
+        "quero criar um plano de aula"
+      ],
+      [
+        "pt",
+        "me ajuda com um plano de aula"
+      ],
+      [
+        "pt",
+        "gerar plano de aula"
+      ],
+      [
+        "pt",
+        "criar atividades para aula"
+      ],
+      [
+        "pt",
+        "planejamento de aula"
+      ],
+      [
+        "pt",
+        "atividades educacionais"
+      ],
+      [
+        "pt",
+        "como fazer um plano de aula"
+      ],
+      [
+        "pt",
+        "vou dar aula sobre"
+      ],
+      [
+        "pt",
+        "estou preparando uma aula"
+      ],
+      [
+        "pt",
+        "quero fazer uma aula legal"
+      ],
+      [
+        "pt",
+        "preciso de ideias para aula"
+      ],
+      [
+        "pt",
+        "como posso ensinar"
+      ],
+      [
+        "pt",
+        "atividades para ensinar"
+      ],
+      [
+        "pt",
+        "tenho uma dúvida"
+      ],
+      [
+        "pt",
+        "não entendo isso"
+      ],
+      [
+        "pt",
+        "me explica"
+      ],
+      [
+        "pt",
+        "como funciona"
+      ],
+      [
+        "pt",
+        "o que é"
+      ],
+      [
+        "pt",
+        "preciso de ajuda"
+      ],
+      [
+        "pt",
+        "pode me ajudar"
+      ],
+      [
+        "pt",
+        "não sei como fazer"
+      ],
+      [
+        "pt",
+        "estou com dificuldade"
+      ],
+      [
+        "pt",
+        "não está funcionando"
+      ],
+      [
+        "pt",
+        "como posso melhorar"
+      ],
+      [
+        "pt",
+        "qual a melhor forma"
+      ],
+      [
+        "pt",
+        "você sabe sobre"
+      ],
+      [
+        "pt",
+        "calendário escolar"
+      ],
+      [
+        "pt",
+        "planejamento semanal"
+      ],
+      [
+        "pt",
+        "organizar minha semana"
+      ],
+      [
+        "pt",
+        "cronograma de aulas"
+      ],
+      [
+        "pt",
+        "agenda escolar"
+      ],
+      [
+        "pt",
+        "planejar atividades"
+      ],
+      [
+        "pt",
+        "horário das aulas"
+      ],
+      [
+        "pt",
+        "quero me organizar"
+      ],
+      [
+        "pt",
+        "preciso organizar meu tempo"
+      ],
+      [
+        "pt",
+        "como organizar as aulas"
+      ],
+      [
+        "pt",
+        "fazer cronograma"
+      ],
+      [
+        "pt",
+        "oi"
+      ],
+      [
+        "pt",
+        "olá"
+      ],
+      [
+        "pt",
+        "bom dia"
+      ],
+      [
+        "pt",
+        "boa tarde"
+      ],
+      [
+        "pt",
+        "boa noite"
+      ],
+      [
+        "pt",
+        "e aí"
+      ],
+      [
+        "pt",
+        "eae"
+      ],
+      [
+        "pt",
+        "oi tudo bem"
+      ],
+      [
+        "pt",
+        "como vai"
+      ],
+      [
+        "pt",
+        "olá como está"
+      ],
+      [
+        "pt",
+        "tchau"
+      ],
+      [
+        "pt",
+        "até logo"
+      ],
+      [
+        "pt",
+        "obrigado"
+      ],
+      [
+        "pt",
+        "valeu"
+      ],
+      [
+        "pt",
+        "até mais"
+      ]
+    ]
+  },
+  "ner": {
+    "settings": {
+      "tag": "ner",
+      "entityPreffix": "%",
+      "entitySuffix": "%"
+    },
+    "rules": {
+      "pt": {
+        "ano": {
+          "name": "ano",
+          "type": "enum",
+          "rules": [
+            {
+              "option": "1º ano",
+              "texts": [
+                "primeiro ano",
+                "1 ano",
+                "primeiro"
+              ]
+            },
+            {
+              "option": "2º ano",
+              "texts": [
+                "segundo ano",
+                "2 ano",
+                "segundo"
+              ]
+            },
+            {
+              "option": "3º ano",
+              "texts": [
+                "terceiro ano",
+                "3 ano",
+                "terceiro"
+              ]
+            },
+            {
+              "option": "4º ano",
+              "texts": [
+                "quarto ano",
+                "4 ano",
+                "quarto"
+              ]
+            },
+            {
+              "option": "5º ano",
+              "texts": [
+                "quinto ano",
+                "5 ano",
+                "quinto"
+              ]
+            },
+            {
+              "option": "6º ano",
+              "texts": [
+                "sexto ano",
+                "6 ano",
+                "sexto"
+              ]
+            },
+            {
+              "option": "7º ano",
+              "texts": [
+                "sétimo ano",
+                "7 ano",
+                "sétimo"
+              ]
+            },
+            {
+              "option": "8º ano",
+              "texts": [
+                "oitavo ano",
+                "8 ano",
+                "oitavo"
+              ]
+            },
+            {
+              "option": "9º ano",
+              "texts": [
+                "nono ano",
+                "9 ano",
+                "nono"
+              ]
+            }
+          ]
+        },
+        "dificuldade": {
+          "name": "dificuldade",
+          "type": "enum",
+          "rules": [
+            {
+              "option": "fácil",
+              "texts": [
+                "facil",
+                "simples",
+                "básico"
+              ]
+            },
+            {
+              "option": "médio",
+              "texts": [
+                "medio",
+                "intermediário",
+                "normal"
+              ]
+            },
+            {
+              "option": "difícil",
+              "texts": [
+                "dificil",
+                "avançado",
+                "complexo"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "nlgManager": {
+    "settings": {
+      "tag": "nlg-manager"
+    },
+    "responses": {}
+  },
+  "actionManager": {
+    "settings": {
+      "tag": "action-manager"
+    },
+    "actions": {}
+  },
+  "slotManager": {}
+}

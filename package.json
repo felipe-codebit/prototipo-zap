@@ -1,0 +1,43 @@
+{
+  "name": "whatsapp-chatbot-educacional",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chatbot educacional com interface WhatsApp para geração de planos de aula, tira-dúvidas e planejamento escolar",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "next": "15.5.4",
+    "@chatscope/chat-ui-kit-react": "^2.0.3",
+    "@chatscope/chat-ui-kit-styles": "^1.4.0",
+    "node-nlp": "^4.27.0",
+    "openai": "^4.20.1",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^9.0.7",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "@eslint/eslintrc": "^3"
+  },
+  "keywords": [
+    "chatbot",
+    "educacao",
+    "whatsapp",
+    "nlp",
+    "openai",
+    "next.js"
+  ]
+}
