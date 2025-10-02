@@ -48,33 +48,34 @@ Crie um plano de aula completo com base nas seguintes informações:
 O plano deve incluir:
 1. Objetivo geral
 2. Objetivos específicos
-3. Conteúdo programático
-4. Metodologia
+3. Conteúdo principal
+4. Metodologia de ensino
 5. Recursos necessários
-6. Atividades (pelo menos 3)
+6. Atividades práticas
 7. Avaliação
-8. Tempo estimado
+8. Duração estimada
 
-Formate de maneira clara e organize em tópicos.
-      `;
+Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
+Use linguagem clara e didática, adequada para o nível educacional especificado.
+`;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'Você é um especialista em educação e criação de planos de aula. Crie planos detalhados e pedagogicamente fundamentados.' },
+          { role: 'system', content: 'Você é um especialista em educação e pedagogia, criando planos de aula detalhados e práticos.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: 1500,
         temperature: 0.7
       });
 
-      const planoAula = response.choices[0]?.message?.content || 'Erro ao gerar plano de aula.';
+      const planoAula = response.choices[0]?.message?.content || 'Desculpe, não consegui gerar o plano de aula.';
 
-      ChatLogger.logDataCollection(sessionId, 'plano_aula', data);
+      ChatLogger.logConversation(sessionId, '[Plano de aula gerado]', planoAula);
       return planoAula;
 
     } catch (error) {
-      ChatLogger.logError(sessionId, error as Error, { planoAulaData: data });
+      ChatLogger.logError(sessionId, error as Error, { data });
       return 'Desculpe, ocorreu um erro ao gerar o plano de aula. Tente novamente.';
     }
   }
@@ -82,65 +83,126 @@ Formate de maneira clara e organize em tópicos.
   static async generatePlanejamentoSemanal(data: PlanejamentoSemanalData, sessionId: string): Promise<string> {
     try {
       const prompt = `
-Crie um planejamento semanal detalhado para professor com base nas informações:
+Crie um planejamento semanal organizado com base nas seguintes informações:
 - Data de início: ${data.dataInicio}
-- Data de fim: ${data.dataFim || 'Fim da semana'}
-- Atividades específicas: ${data.atividades?.join(', ') || 'Atividades de ensino gerais'}
-- Matérias: ${data.materias?.join(', ') || 'Matérias do currículo'}
+- Data de fim: ${data.dataFim || 'Não especificada'}
+- Atividades: ${data.atividades?.join(', ') || 'Não especificadas'}
+- Matérias: ${data.materias?.join(', ') || 'Não especificadas'}
 
-O planejamento semanal deve incluir:
-1. **Cronograma dia a dia** (segunda a sexta)
-2. **Distribuição das matérias** pelos dias
-3. **Tempo para preparação de aulas**
-4. **Tempo para correção de atividades**
-5. **Pausas e intervalos importantes**
-6. **Dicas de organização** para a semana
-7. **Flexibilidade** para imprevistos
+O planejamento deve incluir:
+1. Cronograma diário
+2. Distribuição de atividades
+3. Tempo estimado para cada tarefa
+4. Prioridades
+5. Sugestões de organização
+6. Dicas de produtividade
 
-Formate como um cronograma semanal prático e fácil de seguir.
-      `;
+Seja prático e realista, considerando o tempo disponível e as atividades propostas.
+`;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'Você é um especialista em planejamento semanal para professores. Crie cronogramas práticos e organizados que ajudem professores a serem mais eficientes e menos estressados.' },
+          { role: 'system', content: 'Você é um especialista em organização e produtividade, criando planejamentos semanais eficazes.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: 1000,
         temperature: 0.7
       });
 
-      const planejamento = response.choices[0]?.message?.content || 'Erro ao gerar planejamento semanal.';
+      const planejamento = response.choices[0]?.message?.content || 'Desculpe, não consegui gerar o planejamento semanal.';
 
-      ChatLogger.logDataCollection(sessionId, 'planejamento_semanal', data);
+      ChatLogger.logConversation(sessionId, '[Planejamento semanal gerado]', planejamento);
       return planejamento;
 
     } catch (error) {
-      ChatLogger.logError(sessionId, error as Error, { planejamentoData: data });
+      ChatLogger.logError(sessionId, error as Error, { data });
       return 'Desculpe, ocorreu um erro ao gerar o planejamento semanal. Tente novamente.';
     }
   }
 
   static async transcribeAudio(audioBuffer: Buffer, sessionId: string): Promise<string> {
     try {
-      const formData = new FormData();
-      const audioBlob = new Blob([audioBuffer], { type: 'audio/wav' });
-      formData.append('file', audioBlob, 'audio.wav');
-      formData.append('model', 'whisper-1');
-      formData.append('language', 'pt');
+      console.log('🎤 Iniciando transcrição com OpenAI Whisper...');
+      console.log('📊 Buffer size:', audioBuffer.length, 'bytes');
+      
+      // Criar um arquivo temporário usando fs para Node.js
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+      
+      // Criar arquivo temporário
+      const tempDir = os.tmpdir();
+      const tempFilePath = path.join(tempDir, `audio_${Date.now()}.webm`);
+      
+      console.log('📁 Criando arquivo temporário:', tempFilePath);
+      
+      // Escrever buffer para arquivo temporário
+      fs.writeFileSync(tempFilePath, audioBuffer);
+      
+      console.log('✅ Arquivo temporário criado:', {
+        path: tempFilePath,
+        size: audioBuffer.length,
+        type: 'audio/webm'
+      });
 
+      // Criar File object usando fs.createReadStream
+      const audioFile = fs.createReadStream(tempFilePath);
+      
       const response = await openai.audio.transcriptions.create({
-        file: audioBlob as any,
+        file: audioFile,
         model: 'whisper-1',
         language: 'pt'
       });
 
+      // Limpar arquivo temporário
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log('🗑️ Arquivo temporário removido');
+      } catch (cleanupError) {
+        console.warn('⚠️ Erro ao remover arquivo temporário:', cleanupError);
+      }
+
+      console.log('✅ Transcrição concluída:', response.text);
       ChatLogger.logConversation(sessionId, '[Áudio transcrito]', response.text);
       return response.text;
 
     } catch (error) {
+      console.error('❌ Erro na transcrição:', error);
       ChatLogger.logError(sessionId, error as Error, { context: 'audio_transcription' });
       return 'Não consegui entender o áudio. Pode escrever sua mensagem?';
+    }
+  }
+
+  /**
+   * Gera áudio a partir de texto usando OpenAI TTS
+   * @param text Texto para converter em áudio
+   * @param sessionId ID da sessão do usuário
+   * @param voice Voz a ser usada (alloy, echo, fable, onyx, nova, shimmer)
+   * @returns Buffer com o áudio em formato MP3
+   */
+  static async generateAudio(
+    text: string,
+    sessionId: string,
+    voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer' = 'nova'
+  ): Promise<Buffer | null> {
+    try {
+      const response = await openai.audio.speech.create({
+        model: 'tts-1',
+        voice: voice,
+        input: text,
+        response_format: 'mp3',
+        speed: 1.0
+      });
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      
+      ChatLogger.logConversation(sessionId, `[Áudio gerado: ${text.substring(0, 50)}...]`, '[TTS Buffer]');
+      return buffer;
+
+    } catch (error) {
+      ChatLogger.logError(sessionId, error as Error, { context: 'audio_generation', text });
+      return null;
     }
   }
 

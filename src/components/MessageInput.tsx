@@ -10,6 +10,7 @@ interface MessageInputProps {
 export default function MessageInput({ onSendMessage, onSendAudio }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -29,33 +30,107 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      setRecordingError(null);
+      
+      // Verificar se o navegador suporta MediaRecorder
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Seu navegador não suporta gravação de áudio');
+      }
+
+      // Solicitar permissão de microfone
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      });
+
+      // Verificar se o navegador suporta MediaRecorder
+      if (!window.MediaRecorder) {
+        throw new Error('Seu navegador não suporta MediaRecorder');
+      }
+
+      // Criar MediaRecorder com configurações específicas
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      let mediaRecorder: MediaRecorder;
+      
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        // Fallback para configuração padrão
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log('Dados de áudio recebidos:', event.data.size, 'bytes');
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        console.log('Gravação parada. Chunks:', chunksRef.current.length);
+        
+        if (chunksRef.current.length === 0) {
+          setRecordingError('Nenhum áudio foi gravado. Tente novamente.');
+          return;
+        }
+
+        // Criar blob com o tipo correto
+        const mimeType = chunksRef.current[0].type || 'audio/webm';
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+        
+        console.log('Blob criado:', audioBlob.size, 'bytes, tipo:', audioBlob.type);
+        
+        // Verificar se o blob tem conteúdo
+        if (audioBlob.size === 0) {
+          setRecordingError('Áudio gravado está vazio. Tente novamente.');
+          return;
+        }
+
         onSendAudio(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onerror = (event) => {
+        console.error('Erro no MediaRecorder:', event);
+        setRecordingError('Erro durante a gravação. Tente novamente.');
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start(100); // Coletar dados a cada 100ms
       setIsRecording(true);
+      
+      console.log('Gravação iniciada com sucesso');
+
     } catch (error) {
       console.error('Erro ao acessar microfone:', error);
-      alert('Não foi possível acessar o microfone. Verifique as permissões.');
+      
+      let errorMessage = 'Não foi possível acessar o microfone.';
+      
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Permissão de microfone negada. Por favor, permita o acesso ao microfone e tente novamente.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'Nenhum microfone encontrado. Verifique se há um microfone conectado.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = 'Seu navegador não suporta gravação de áudio.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setRecordingError(errorMessage);
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      console.log('Parando gravação...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
@@ -71,43 +146,17 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
 
   return (
     <div className="bg-[#f0f0f0] p-4">
-      <div className="flex items-end space-x-3">
-        {/* Emoji/Anexo */}
-        <button className="p-2 text-gray-600 hover:text-gray-800 transition-colors">
-          <svg
-            className="w-6 h-6"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-          </svg>
-        </button>
-
-        {/* Input de texto */}
+      <div className="flex items-center space-x-2">
+        {/* Campo de texto */}
         <div className="flex-1 relative">
-          <textarea
+          <input
+            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Digite uma mensagem..."
-            className="w-full p-3 pr-12 border border-gray-300 rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent max-h-32"
-            rows={1}
-            style={{
-              minHeight: '44px',
-              height: 'auto'
-            }}
+            placeholder="Digite sua mensagem..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#075e54] focus:border-transparent"
           />
-
-          {/* Emoji button dentro do input */}
-          <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors">
-            <svg
-              className="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-            </svg>
-          </button>
         </div>
 
         {/* Botão de áudio ou enviar */}
@@ -159,6 +208,24 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
         <div className="flex items-center justify-center mt-2 text-red-500 text-sm">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
           Gravando... Toque novamente para parar
+        </div>
+      )}
+
+      {/* Mensagem de erro */}
+      {recordingError && (
+        <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm">
+          <div className="flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            {recordingError}
+          </div>
+          <button
+            onClick={() => setRecordingError(null)}
+            className="mt-1 text-xs underline hover:no-underline"
+          >
+            Fechar
+          </button>
         </div>
       )}
     </div>

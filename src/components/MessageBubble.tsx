@@ -1,6 +1,7 @@
 'use client';
 
 import { Message } from '@/types';
+import { useState, useRef } from 'react';
 
 interface MessageBubbleProps {
   message: Message;
@@ -9,6 +10,9 @@ interface MessageBubbleProps {
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.sender === 'user';
   const isAudio = message.type === 'audio';
+  const hasAudioUrl = !!message.audioUrl;
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('pt-BR', {
@@ -25,6 +29,17 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {index < text.split('\n').length - 1 && <br />}
       </span>
     ));
+  };
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
   return (
@@ -47,6 +62,34 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
             </svg>
             <span>Áudio</span>
+          </div>
+        )}
+
+        {/* Player de áudio (se a mensagem tiver audioUrl) */}
+        {hasAudioUrl && !isUser && (
+          <div className="mb-2">
+            <button
+              onClick={toggleAudio}
+              className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-md transition-colors"
+            >
+              {isPlaying ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+              <span>{isPlaying ? 'Pausar' : 'Ouvir'} resposta</span>
+            </button>
+            <audio
+              ref={audioRef}
+              src={message.audioUrl}
+              onEnded={() => setIsPlaying(false)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
           </div>
         )}
 
