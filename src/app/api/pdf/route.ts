@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     ChatLogger.logConversation(sessionId, '[PDF solicitado]', 'PDF do plano de aula gerado');
 
     // Retornar PDF como resposta
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
