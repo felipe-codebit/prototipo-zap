@@ -346,7 +346,7 @@ REGRAS:
 - Seja conservador: em caso de dúvida, não extraia
 
 Retorne APENAS JSON no formato:
-{"ano": "valor ou null", "tema": "valor ou null", "nivelDificuldade": "valor ou null", "dataInicio": "valor ou null", "periodo": "valor ou null"}`;
+{"ano": "valor ou null", "tema": "valor ou null", "dataInicio": "valor ou null", "periodo": "valor ou null"}`;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
@@ -392,14 +392,12 @@ Retorne APENAS JSON no formato:
       const fieldDescriptions: Record<string, string> = {
         'ano': 'ano escolar (1º ao 9º ano, ou ensino médio)',
         'tema ou habilidade BNCC': 'tema da aula ou habilidade da BNCC a ser trabalhada',
-        'nível de dificuldade': 'nível de dificuldade das atividades (fácil, médio ou difícil)',
         'data de início': 'data de início do planejamento semanal'
       };
 
       const fieldExplanations: Record<string, string> = {
         'ano': 'Saber o ano escolar me ajuda a adequar as atividades ao desenvolvimento cognitivo e emocional dos alunos!',
         'tema ou habilidade BNCC': 'Com o tema ou habilidade definidos, posso sugerir atividades alinhadas com a BNCC e super contextualizadas!',
-        'nível de dificuldade': 'O nível de dificuldade garante que os alunos se sintam desafiados na medida certa - nem frustrados, nem entediados!',
         'data de início': 'Saber quando começa me ajuda a organizar o planejamento de forma realista e prática para você!'
       };
 
@@ -469,9 +467,6 @@ IMPORTANTE:
     if (missingField === 'tema ou habilidade BNCC') {
       const anoInfo = collectedData.ano ? `Que legal trabalhar com ${collectedData.ano}! ✨` : '✨';
       return `${anoInfo} Agora preciso saber qual tema ou habilidade da BNCC vamos explorar. Isso vai me ajudar a deixar tudo bem alinhado e contextualizado para seus alunos. Qual você tem em mente?`;
-    }
-    if (missingField === 'nível de dificuldade') {
-      return `🚀 Adorei o tema! Agora vamos calibrar o nível para que seus alunos se sintam desafiados na medida certa. Você quer atividades mais fáceis (para introduzir), médias (para consolidar) ou difíceis (para expandir o conhecimento)?`;
     }
     if (missingField === 'data de início') {
       return `🗓️ Perfeito! Vamos organizar sua semana. Saber quando começamos me ajuda a criar um planejamento realista. A partir de quando vamos planejar? Pode ser "esta segunda", "próxima semana" ou uma data específica!`;
@@ -634,7 +629,7 @@ Restrições:
 Você está ajudando com a criação de planos de aula - que tarefa importante e empolgante!
 Seja encorajador e mostre como cada informação vai tornar o plano ainda melhor.
 Faça perguntas de forma natural e explique brevemente por que cada dado é importante.
-Colete: ano escolar, tema/habilidade BNCC, e nível de dificuldade.
+Colete: ano escolar, tema/habilidade BNCC.
 Elogie as escolhas do professor e demonstre entusiasmo pelo projeto pedagógico.`;
 
       case 'tira_duvidas':

@@ -81,7 +81,7 @@ export class ConversationContextManager {
 
     if (!data.ano) missing.push('ano');
     if (!data.tema && !data.habilidadeBNCC) missing.push('tema ou habilidade BNCC');
-    if (!data.nivelDificuldade) missing.push('nível de dificuldade');
+    // nivelDificuldade é opcional - se não fornecido, usa padrão 'medio'
 
     return missing;
   }
