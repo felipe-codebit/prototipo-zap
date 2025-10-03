@@ -199,6 +199,9 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
       case 'revisar_plano':
         return this.handleRevisarPlanoIntent(sessionId, message);
 
+      case 'reflexao_pedagogica':
+        return this.handleReflexaoPedagogicaIntent(sessionId, message);
+
       default:
         return this.handleUnclearIntent(message, sessionId);
     }
@@ -263,6 +266,39 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
     }
   }
 
+  private static async handleReflexaoPedagogicaIntent(sessionId: string, message: string): Promise<string> {
+    try {
+      // Verificar se há um plano anterior para referência
+      const persistentContent = ConversationContextManager.getPersistentContent(sessionId);
+      const hasPreviousPlan = persistentContent?.lastPlanoContent || persistentContent?.lastPlanejamentoContent;
+      
+      if (!hasPreviousPlan) {
+        return "Que legal que você quer refletir sobre a prática pedagógica! 💭\n\nPara te ajudar melhor, seria interessante ter um plano de aula como referência. Você gostaria de criar um plano primeiro ou prefere conversar sobre algum aspecto específico da sua prática?";
+      }
+
+      // Gerar resposta de reflexão pedagógica contextual
+      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+      const response = await OpenAIService.generateContextualResponse(
+        'reflexao_pedagogica',
+        {
+          message,
+          additionalInfo: 'hasPreviousPlan: true',
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        },
+        sessionId
+      );
+
+      return response;
+
+    } catch (error) {
+      ChatLogger.logError(sessionId, error as Error, { context: 'reflexao_pedagogica', message });
+      return "Desculpe, ocorreu um erro ao processar sua reflexão. Tente novamente ou digite 'sair' para reiniciar.";
+    }
+  }
+
   private static async handlePlanoAulaIntent(sessionId: string): Promise<string> {
     // Extrair informações da mensagem atual no contexto da intenção
     await this.extractAdditionalInfo(sessionId, 'plano_aula');
@@ -288,6 +324,9 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
         sessionId
       );
 
+      // Adicionar mensagem de continuidade conversacional
+      const continuationMessage = await this.generatePostPlanContinuationMessage(data, sessionId);
+
       // IMPORTANTE: Preservar o conteúdo do plano para geração de PDF posterior
       const planoContent = this.extractPlanoContent(planoAula);
       if (planoContent) {
@@ -299,7 +338,7 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
       // Limpar contexto mas preservar o conteúdo do plano e dados
       ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanoContent', 'lastPlanoData']);
 
-      return `${contextualResponse}\n\n${planoAula}`;
+      return `${contextualResponse}\n\n${planoAula}\n\n${continuationMessage}`;
     } else {
       // Ainda faltam dados, perguntar especificamente
       return await this.askForMissingPlanoAulaData(missingData, sessionId);
@@ -806,6 +845,79 @@ O que você gostaria de fazer agora?`;
     }
 
     return alteracoes;
+  }
+
+  /**
+   * Gera mensagem de continuidade conversacional após a geração do plano
+   */
+  private static async generatePostPlanContinuationMessage(data: PlanoAulaData, sessionId: string): Promise<string> {
+    try {
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const prompt = `Você é a ANE, assistente pedagógica. O professor acabou de receber um plano de aula completo.
+
+Dados do plano gerado:
+- Ano: ${data.ano}
+- Tema: ${data.tema || data.habilidadeBNCC}
+- Nível: ${data.nivelDificuldade || 'médio'}
+
+Gere uma mensagem de continuidade conversacional que:
+1. Parabenize o professor pelo plano criado
+2. Encoraje a reflexão sobre a prática pedagógica
+3. Ofereça suporte para próximos passos
+4. Seja acolhedora e motivadora
+5. Mencione as opções de continuidade (ajustes, PDF, novos planos, etc.)
+
+A mensagem deve ser natural, conversacional e incentivar o professor a continuar interagindo.
+
+Exemplo de tom:
+"Que plano incrível criamos juntos! 🎉 
+Agora que você tem tudo estruturado, que tal refletirmos sobre como implementar na sua turma? 
+Posso te ajudar com ajustes, gerar o PDF, ou até mesmo criar um novo plano. 
+O que você gostaria de fazer agora?"`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é a ANE, uma assistente pedagógica amigável e encorajadora.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 200,
+        temperature: 0.7
+      });
+
+      return response.choices[0]?.message?.content || 
+        `Que plano incrível criamos juntos! 🎉 
+
+Agora que você tem tudo estruturado, que tal refletirmos sobre como implementar na sua turma? 
+
+Posso te ajudar com:
+👉🏽 **Ajustes** no plano (duração, atividades, dificuldade)
+👉🏽 **Gerar PDF** para compartilhar
+👉🏽 **Criar novo plano** para outro tema
+👉🏽 **Planejamento semanal** 
+👉🏽 **Tirar dúvidas** pedagógicas
+
+O que você gostaria de fazer agora? 😊`;
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar mensagem de continuidade:', error);
+      return `Que plano incrível criamos juntos! 🎉 
+
+Agora que você tem tudo estruturado, que tal refletirmos sobre como implementar na sua turma? 
+
+Posso te ajudar com:
+👉🏽 **Ajustes** no plano (duração, atividades, dificuldade)
+👉🏽 **Gerar PDF** para compartilhar
+👉🏽 **Criar novo plano** para outro tema
+👉🏽 **Planejamento semanal** 
+👉🏽 **Tirar dúvidas** pedagógicas
+
+O que você gostaria de fazer agora? 😊`;
+    }
   }
 
   /**

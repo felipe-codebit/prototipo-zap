@@ -12,7 +12,9 @@ export class SimpleNLPService {
     // Respostas afirmativas e de continuação
     continuar: ['ok', 'sim', 'vamos', 'continuar', 'pode ser', 'beleza', 'certo', 'perfeito', 'ótimo', 'legal', 'show', 'vamos lá', 'bora', 'dale', 'isso aí', 'correto', 'exato'],
     // Revisão de plano de aula
-    revisar_plano: ['alterar', 'mudar', 'trocar', 'modificar', 'ajustar', 'revisar', 'atualizar', 'dificuldade', 'ano', 'tema', 'fácil', 'médio', 'difícil', 'facil', 'medio', 'dificil']
+    revisar_plano: ['alterar', 'mudar', 'trocar', 'modificar', 'ajustar', 'revisar', 'atualizar', 'dificuldade', 'ano', 'tema', 'fácil', 'médio', 'difícil', 'facil', 'medio', 'dificil'],
+    // Reflexão pedagógica
+    reflexao_pedagogica: ['reflexão', 'reflexao', 'refletir', 'o que funcionou', 'o que pode melhorar', 'engajamento', 'dificuldades', 'próximos passos', 'proximos passos', 'continuidade', 'implementar', 'aplicar', 'prática', 'pratica']
   };
 
   async analyzeIntent(message: string, sessionId: string): Promise<IntentAnalysisResult> {
@@ -122,6 +124,7 @@ INTENÇÕES POSSÍVEIS:
 - despedida: Agradecimentos ou despedidas
 - sair: Quer cancelar/reiniciar conversa
 - revisar_plano: Quer alterar/mudar/revisar um plano já gerado (ex: "alterar a dificuldade", "mudar o ano", "trocar o tema", "fazer mais fácil", "tornar mais difícil")
+- reflexao_pedagogica: Quer refletir sobre a prática pedagógica, implementação do plano, engajamento dos alunos, dificuldades, próximos passos
 - unclear: Não conseguiu identificar
 
 IMPORTANTE: 

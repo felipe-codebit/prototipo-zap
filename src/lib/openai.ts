@@ -123,6 +123,19 @@ O plano deve seguir EXATAMENTE esta estrutura:
    - Instrumentos de avaliação
    - Momentos avaliativos
 
+8. **REFLEXÃO DO PROFESSOR**:
+   - O que funcionou bem nesta aula?
+   - O que pode ser melhorado?
+   - Houve engajamento dos alunos?
+   - Quais foram as principais dificuldades percebidas?
+   - Quais próximos passos podem ser planejados para dar sequência ao que já foi trabalhado?
+
+9. **SUGESTÕES DE CONTINUIDADE**:
+   - Atividades complementares
+   - Projetos interdisciplinares
+   - Retomadas de conteúdo para reforçar aprendizagens
+   - Estratégias de aprofundamento do tema
+
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
 Destaque claramente que as atividades foram desenvolvidas para o nível "${data.nivelDificuldade || 'médio'}".

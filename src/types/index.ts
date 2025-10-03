@@ -28,6 +28,7 @@ export type Intent =
   | 'sair'
   | 'continuar'
   | 'revisar_plano'
+  | 'reflexao_pedagogica'
   | 'unclear';
 
 export interface PlanoAulaData {
