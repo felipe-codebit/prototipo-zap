@@ -124,17 +124,17 @@ O plano deve seguir EXATAMENTE esta estrutura:
    - Momentos avaliativos
 
 8. **REFLEXÃO DO PROFESSOR**:
-   - O que funcionou bem nesta aula?
-   - O que pode ser melhorado?
-   - Houve engajamento dos alunos?
-   - Quais foram as principais dificuldades percebidas?
-   - Quais próximos passos podem ser planejados para dar sequência ao que já foi trabalhado?
-
-9. **SUGESTÕES DE CONTINUIDADE**:
-   - Atividades complementares
-   - Projetos interdisciplinares
-   - Retomadas de conteúdo para reforçar aprendizagens
-   - Estratégias de aprofundamento do tema
+   Esta seção é um espaço para você refletir sobre sua prática pedagógica após implementar este plano. Use estas perguntas como guia para uma reflexão profunda e construtiva:
+   
+   💭 **Momentos de sucesso**: Quais foram os momentos em que você sentiu que os alunos realmente compreenderam o conteúdo? O que contribuiu para esse sucesso?
+   
+   🔍 **Desafios encontrados**: Que dificuldades surgiram durante a aula? Como você lidou com elas? O que faria diferente?
+   
+   👥 **Engajamento dos alunos**: Como foi a participação da turma? Quais estratégias funcionaram melhor para manter o interesse?
+   
+   📈 **Aprendizagens observadas**: Que evidências você percebeu de que os alunos aprenderam? Como você mediu o progresso?
+   
+   🚀 **Próximos passos**: Com base nesta experiência, que ajustes faria no plano? Que atividades complementares considera importantes?
 
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
@@ -349,7 +349,7 @@ ${recentHistory}
 SUA RESPOSTA DEVE:
 - Reconhecer que não entendeu de forma simpática
 - Explicar brevemente que você ajuda com 3 coisas específicas
-- Mencionar essas 3 coisas de forma conversacional (planos de aula, dúvidas, planejamento)
+- Mencionar essas 3 coisas de forma conversacional (planos de aula, dúvidas, atividades)
 - Perguntar qual dessas se aproxima do que ele quer
 - OU encorajar que ele faça uma pergunta direta se for dúvida
 - Ser amigável e não fazê-lo sentir burro
@@ -411,13 +411,13 @@ IMPORTANTE:
       case 'despedida':
         return `Foi ótimo trabalhar com você! 🌟 Seus alunos têm sorte de ter um professor tão dedicado. Volte sempre que precisar! 📚✨`;
       case 'reiniciar':
-        return `🔄 Pronto! Limpei tudo e estamos começando do zero. Posso te ajudar com planos de aula, dúvidas pedagógicas ou planejamento semanal. Por onde começamos? ✨`;
+        return `🔄 Pronto! Limpei tudo e estamos começando do zero. Posso te ajudar com planos de aula, dúvidas pedagógicas ou sugestões de atividades. Por onde começamos? ✨`;
       case 'continuar_sem_contexto':
         return `😊 Vi que quer continuar! Com o que posso te ajudar? Plano de aula, tirar dúvidas ou organizar sua semana? ✨`;
       case 'negacao':
-        return `Tudo bem! 😊 Quando precisar de ajuda com planos de aula, dúvidas ou planejamento, é só chamar! ✨`;
+        return `Tudo bem! 😊 Quando precisar de ajuda com planos de aula, dúvidas ou sugestões de atividades, é só chamar! ✨`;
       case 'unclear_intent':
-        return `Hmm, não entendi bem! 🤔 Posso ajudar com planos de aula, dúvidas pedagógicas ou planejamento semanal. Qual dessas opções te interessa? Ou se tiver uma dúvida específica, pode perguntar! 😊`;
+        return `Hmm, não entendi bem! 🤔 Posso ajudar com planos de aula, dúvidas pedagógicas ou sugestões de atividades. Qual dessas opções te interessa? Ou se tiver uma dúvida específica, pode perguntar! 😊`;
       default:
         return `😊 Como posso te ajudar hoje?`;
     }
@@ -835,10 +835,10 @@ A base da sua apresentação deve ser a seguinte, adaptando a linguagem ao tom e
 Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?"
 
 SEMPRE apresente o que você pode fazer, explicando claramente suas funcionalidades:
-👉🏽 Crio planejamentos de aula
+👉🏽 Crio planos de aula
 👉🏽 Trago ideias de metodologias e atividades
 👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
-💬 Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+💬 Para te ajudar preciso saber o ano e tema ou habilidade da sua aula
 
 Incentive que o professor conte seu pedido de ajuda. Mostre que é um prazer ajudar.
 

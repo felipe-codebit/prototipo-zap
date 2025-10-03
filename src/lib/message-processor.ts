@@ -276,26 +276,106 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
         return "Que legal que você quer refletir sobre a prática pedagógica! 💭\n\nPara te ajudar melhor, seria interessante ter um plano de aula como referência. Você gostaria de criar um plano primeiro ou prefere conversar sobre algum aspecto específico da sua prática?";
       }
 
-      // Gerar resposta de reflexão pedagógica contextual
-      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
-      const response = await OpenAIService.generateContextualResponse(
-        'reflexao_pedagogica',
-        {
-          message,
-          additionalInfo: 'hasPreviousPlan: true',
-          conversationHistory: conversationHistory.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          }))
-        },
-        sessionId
-      );
+      // Gerar prompt de reflexão pedagógica amigável
+      const planoData = ConversationContextManager.getCollectedData(sessionId).lastPlanoData as PlanoAulaData;
+      const reflectionPrompt = await this.generateReflectionPrompt(planoData, sessionId);
 
-      return response;
+      return reflectionPrompt;
 
     } catch (error) {
       ChatLogger.logError(sessionId, error as Error, { context: 'reflexao_pedagogica', message });
       return "Desculpe, ocorreu um erro ao processar sua reflexão. Tente novamente ou digite 'sair' para reiniciar.";
+    }
+  }
+
+  /**
+   * Gera um prompt amigável para reflexão pedagógica baseado em exemplos passados
+   */
+  private static async generateReflectionPrompt(data: PlanoAulaData, sessionId: string): Promise<string> {
+    try {
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const prompt = `Você é a ANE, assistente pedagógica. O professor quer refletir sobre sua prática pedagógica.
+
+Dados do plano de referência:
+- Ano: ${data.ano}
+- Tema: ${data.tema || data.habilidadeBNCC}
+- Nível: ${data.nivelDificuldade || 'médio'}
+
+Crie um prompt de reflexão pedagógica que:
+1. Seja acolhedor e encorajador
+2. Instigue o professor a pensar profundamente sobre sua prática
+3. Use exemplos específicos do plano como base
+4. Faça perguntas que extraiam feedback valioso
+5. Seja conversacional e natural
+6. Ofereça diferentes ângulos de reflexão
+
+O prompt deve ser como uma conversa entre colegas, não um questionário formal. Use o tema e ano do plano para personalizar as perguntas.
+
+Exemplo de tom:
+"Que bom que você quer refletir sobre sua prática! 💭 
+
+Vejo que você trabalhou com ${data.tema || data.habilidadeBNCC} no ${data.ano} - que tema interessante! 
+
+Vamos pensar juntos sobre essa experiência? Me conta:
+
+🎯 **O que mais te surpreendeu** durante a implementação desse plano? Houve algum momento em que você pensou 'nossa, não esperava que fosse assim'?
+
+👥 **Como foi a reação dos alunos**? Teve algum aluno que reagiu de forma diferente do que você esperava? O que isso te ensinou?
+
+💡 **Que insights você teve** sobre como seus alunos aprendem melhor? Descobriu alguma estratégia que funcionou especialmente bem?
+
+🔄 **Se fosse fazer de novo**, o que você mudaria? Que ajustes faria baseado no que observou?
+
+Estou aqui para ouvir e aprender com sua experiência! Conte-me o que mais te marcou nessa aula. 😊"`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é a ANE, uma assistente pedagógica que ama ouvir e aprender com as experiências dos professores.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 400,
+        temperature: 0.8
+      });
+
+      return response.choices[0]?.message?.content || 
+        `Que bom que você quer refletir sobre sua prática! 💭 
+
+Vejo que você trabalhou com ${data.tema || data.habilidadeBNCC} no ${data.ano} - que tema interessante! 
+
+Vamos pensar juntos sobre essa experiência? Me conta:
+
+🎯 **O que mais te surpreendeu** durante a implementação desse plano? Houve algum momento em que você pensou 'nossa, não esperava que fosse assim'?
+
+👥 **Como foi a reação dos alunos**? Teve algum aluno que reagiu de forma diferente do que você esperava? O que isso te ensinou?
+
+💡 **Que insights você teve** sobre como seus alunos aprendem melhor? Descobriu alguma estratégia que funcionou especialmente bem?
+
+🔄 **Se fosse fazer de novo**, o que você mudaria? Que ajustes faria baseado no que observou?
+
+Estou aqui para ouvir e aprender com sua experiência! Conte-me o que mais te marcou nessa aula. 😊`;
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar prompt de reflexão:', error);
+      return `Que bom que você quer refletir sobre sua prática! 💭 
+
+Vejo que você trabalhou com ${data.tema || data.habilidadeBNCC} no ${data.ano} - que tema interessante! 
+
+Vamos pensar juntos sobre essa experiência? Me conta:
+
+🎯 **O que mais te surpreendeu** durante a implementação desse plano? Houve algum momento em que você pensou 'nossa, não esperava que fosse assim'?
+
+👥 **Como foi a reação dos alunos**? Teve algum aluno que reagiu de forma diferente do que você esperava? O que isso te ensinou?
+
+💡 **Que insights você teve** sobre como seus alunos aprendem melhor? Descobriu alguma estratégia que funcionou especialmente bem?
+
+🔄 **Se fosse fazer de novo**, o que você mudaria? Que ajustes faria baseado no que observou?
+
+Estou aqui para ouvir e aprender com sua experiência! Conte-me o que mais te marcou nessa aula. 😊`;
     }
   }
 
@@ -481,10 +561,10 @@ Quero te mostrar rapidinho como posso te ajudar por aqui, tudo bem?"
 
 3. SEMPRE explique o que você consegue fazer, mesmo quando houver uma solicitação específica.
 Liste claramente suas principais funções:
-👉🏽 Crio planejamentos de aula
+👉🏽 Crio planos de aula
 👉🏽 Trago ideias de metodologias e atividades
 👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
-💬 Para te ajudar preciso saber o ano e tema ou habilidade do seu planejamento
+💬 Para te ajudar preciso saber o ano e tema ou habilidade da sua aula
 
 4. Se o professor já trouxer uma solicitação, adapte a explicação acima ao contexto e incentive que ele dê mais detalhes.
 
@@ -502,28 +582,28 @@ EXEMPLOS DE RESPOSTAS:
 Se o professor mandar apenas "Oi, tudo bem?":
 "Oi, tudo bem? Eu sou a ANE, sua assistente pedagógica 👩🏽‍🏫💡.
 Quero te mostrar rapidinho como posso te ajudar por aqui.
-👉🏽 Crio planejamentos de aula
+👉🏽 Crio planos de aula
 👉🏽 Trago ideias de metodologias e atividades
 👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
-💬 Para começar, me conta o ano e o tema ou habilidade que você está planejando?
+💬 Para começar, me conta o ano e o tema ou habilidade que você quer trabalhar?
 Vai ser um prazer te ajudar!"
 
 Se o professor mandar "Como você pode ajudar?" ou "O que você faz?":
 "Oi! Eu sou a ANE, sua assistente pedagógica 👩🏽‍🏫💡.
 Que bom você perguntar! Vou te mostrar rapidinho como posso te ajudar por aqui.
-👉🏽 Crio planejamentos de aula
+👉🏽 Crio planos de aula
 👉🏽 Trago ideias de metodologias e atividades
 👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
-💬 Para começar, me conta o ano e o tema ou habilidade que você está planejando?
+💬 Para começar, me conta o ano e o tema ou habilidade que você quer trabalhar?
 Vai ser um prazer te ajudar!"
 
 Se o professor mandar "Oi, bom dia, me ajuda a planejar uma aula sobre frações para o 6º ano?":
 "Oi, bom dia! Eu sou a ANE, sua assistente pedagógica 👩🏽‍🏫💡.
 Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar rapidinho como posso te ajudar:
-👉🏽 Crio planejamentos de aula
+👉🏽 Crio planos de aula
 👉🏽 Trago ideias de metodologias e atividades
 👉🏽 Ajudo na reflexão sobre suas práticas pedagógicas
-💬 Você mencionou frações para o 6º ano. Quer que eu sugira um planejamento completo com atividades ou prefere só ideias de metodologias para essa habilidade?"
+💬 Você mencionou frações para o 6º ano. Quer que eu crie um plano completo com atividades ou prefere só ideias de metodologias para essa habilidade?"
 `;
 
       const response = await client.chat.completions.create({
@@ -765,6 +845,24 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
         persistentContentLength: persistentContent?.lastPlanoContent?.length || 0
       });
 
+      // Buscar dados do plano para gerar sugestões personalizadas
+      const planoData = ConversationContextManager.getCollectedData(sessionId).lastPlanoData as PlanoAulaData;
+      
+      // Gerar sugestões de continuidade personalizadas
+      const continuitySuggestions = planoData ? 
+        await this.generateContinuitySuggestions(planoData, sessionId) : 
+        `Que legal que você tem o PDF! 📄✨ 
+
+Agora que o plano está pronto, que tal pensarmos em como dar continuidade a esse tema? 
+
+Posso te ajudar com:
+🎨 **Projetos interdisciplinares** criativos
+🔬 **Atividades práticas** que os alunos vão adorar
+📚 **Leituras complementares** para aprofundar
+🎯 **Estratégias de avaliação** diferenciadas
+
+O que você acha? Alguma dessas ideias te anima? Ou prefere que eu ajude com outra coisa? 😊`;
+
       // Gerar resposta com link de download via API
       const response = `Perfeito! Vou gerar o PDF do seu plano de aula para você! 📄✨
 
@@ -782,13 +880,9 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
 
 O arquivo foi gerado com sucesso! Clique no botão acima para fazer o download.
 
-Enquanto isso, posso te ajudar com:
-👉🏽 Criar outro plano de aula
-👉🏽 Ajustar este plano
-👉🏽 Planejamento semanal
-👉🏽 Tirar dúvidas pedagógicas
+---
 
-O que você gostaria de fazer agora?`;
+${continuitySuggestions}`;
 
       // Log da ação
       ChatLogger.logConversation(sessionId, '[PDF gerado]', 'PDF do plano de aula gerado e disponibilizado para download');
@@ -898,7 +992,7 @@ Posso te ajudar com:
 👉🏽 **Ajustes** no plano (duração, atividades, dificuldade)
 👉🏽 **Gerar PDF** para compartilhar
 👉🏽 **Criar novo plano** para outro tema
-👉🏽 **Planejamento semanal** 
+👉🏽 **Sugerir atividades** complementares
 👉🏽 **Tirar dúvidas** pedagógicas
 
 O que você gostaria de fazer agora? 😊`;
@@ -913,10 +1007,94 @@ Posso te ajudar com:
 👉🏽 **Ajustes** no plano (duração, atividades, dificuldade)
 👉🏽 **Gerar PDF** para compartilhar
 👉🏽 **Criar novo plano** para outro tema
-👉🏽 **Planejamento semanal** 
+👉🏽 **Sugerir atividades** complementares
 👉🏽 **Tirar dúvidas** pedagógicas
 
 O que você gostaria de fazer agora? 😊`;
+    }
+  }
+
+  /**
+   * Gera sugestões de continuidade amigáveis após a geração do PDF
+   */
+  private static async generateContinuitySuggestions(data: PlanoAulaData, sessionId: string): Promise<string> {
+    try {
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const prompt = `Você é a ANE, assistente pedagógica. O professor acabou de gerar o PDF do seu plano de aula.
+
+Dados do plano:
+- Ano: ${data.ano}
+- Tema: ${data.tema || data.habilidadeBNCC}
+- Nível: ${data.nivelDificuldade || 'médio'}
+
+Gere sugestões de continuidade amigáveis e práticas que:
+1. Sejam específicas para o tema e ano do plano
+2. Ofereçam atividades complementares concretas
+3. Sugiram projetos interdisciplinares relevantes
+4. Proponham estratégias de aprofundamento
+5. Sejam fáceis de implementar
+
+Formate como uma conversa natural, não como uma lista formal. Seja encorajadora e mostre entusiasmo pelas possibilidades.
+
+Exemplo de tom:
+"Que legal que você tem o PDF! 📄✨ 
+
+Agora que o plano está pronto, que tal pensarmos em como dar continuidade a esse tema? 
+
+Para o ${data.ano} trabalhando com ${data.tema || data.habilidadeBNCC}, eu sugiro algumas ideias que podem complementar perfeitamente:
+
+🎨 **Projeto interdisciplinar**: Que tal conectar com Artes criando... [sugestão específica]
+
+🔬 **Atividade prática**: Uma experiência simples que os alunos vão adorar é... [sugestão específica]
+
+📚 **Leitura complementar**: Para aprofundar, sugiro... [sugestão específica]
+
+O que você acha? Alguma dessas ideias te anima? Ou prefere que eu ajude com outra coisa?"`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é a ANE, uma assistente pedagógica criativa e encorajadora que ama sugerir atividades práticas.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 300,
+        temperature: 0.8
+      });
+
+      return response.choices[0]?.message?.content || 
+        `Que legal que você tem o PDF! 📄✨ 
+
+Agora que o plano está pronto, que tal pensarmos em como dar continuidade a esse tema? 
+
+Para o ${data.ano} trabalhando com ${data.tema || data.habilidadeBNCC}, eu sugiro algumas ideias que podem complementar perfeitamente:
+
+🎨 **Projeto interdisciplinar**: Que tal conectar com outras áreas do conhecimento?
+
+🔬 **Atividade prática**: Uma experiência simples que os alunos vão adorar!
+
+📚 **Leitura complementar**: Para aprofundar o tema de forma divertida!
+
+O que você acha? Alguma dessas ideias te anima? Ou prefere que eu ajude com outra coisa? 😊`;
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar sugestões de continuidade:', error);
+      return `Que legal que você tem o PDF! 📄✨ 
+
+Agora que o plano está pronto, que tal pensarmos em como dar continuidade a esse tema? 
+
+Para o ${data.ano} trabalhando com ${data.tema || data.habilidadeBNCC}, eu sugiro algumas ideias que podem complementar perfeitamente:
+
+🎨 **Projeto interdisciplinar**: Que tal conectar com outras áreas do conhecimento?
+
+🔬 **Atividade prática**: Uma experiência simples que os alunos vão adorar!
+
+📚 **Leitura complementar**: Para aprofundar o tema de forma divertida!
+
+O que você acha? Alguma dessas ideias te anima? Ou prefere que eu ajude com outra coisa? 😊`;
     }
   }
 
@@ -1085,7 +1263,7 @@ Qual desses temas te chama mais atenção? Ou se preferir, pode me dizer outro t
 👉🏽 **Gerar PDF** do plano (digite "manda o plano" ou "gerar pdf")
 👉🏽 **Criar novo plano** de aula
 👉🏽 **Ajustar o plano** anterior (alterar dificuldade, ano ou tema)
-👉🏽 **Planejamento semanal**
+👉🏽 **Sugerir atividades** complementares
 👉🏽 **Tirar dúvidas** pedagógicas
 
 Qual opção te interessa? 😊`;
