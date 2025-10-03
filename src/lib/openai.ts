@@ -68,12 +68,31 @@ O plano deve incluir:
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
 Destaque claramente que as atividades foram desenvolvidas para o nível "${data.nivelDificuldade || 'médio'}".
+
+IMPORTANTE: Termine o plano com uma seção de próximos passos, oferecendo opções práticas ao professor:
+- Usar direto com a turma
+- Ajustar duração, nível de complexidade, atividades
+- Gerar em PDF ou compartilhar
+- Fazer perguntas por áudio
+
+Seja encorajadora e mostre que está disponível para ajudar com ajustes.
 `;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'Você é um especialista em educação e pedagogia, criando planos de aula detalhados e práticos.' },
+          { role: 'system', content: `Você é um especialista em educação e pedagogia, criando planos de aula detalhados e práticos.
+
+IMPORTANTE: Ao final do plano, SEMPRE termine com uma seção de próximos passos usando esta estrutura:
+
+"Prontinho! Aqui está o seu plano de aula! ✨
+
+Agora você pode:
+👉🏽 Usar direto com a turma
+👉🏽 Ajustar comigo a duração, o nível de complexidade, as atividades e o que mais precisar. Inclusive, se preferir, pode me pedir isso por áudio.
+👉🏽 Gerar em PDF ou compartilhar
+
+O que você gostaria de fazer?"` },
           { role: 'user', content: prompt }
         ],
         max_tokens: 1500,

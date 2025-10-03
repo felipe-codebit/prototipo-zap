@@ -15,6 +15,13 @@ export class MessageProcessor {
         return this.handleSairIntent(sessionId);
       }
 
+      // Verificação prioritária para geração de PDF
+      if (this.isPDFRequest(msg)) {
+        console.log('📄 Solicitação de PDF detectada:', message);
+        console.log('📄 Interrompendo processamento normal para gerar PDF');
+        return this.handlePDFRequest(sessionId, message);
+      }
+
       const currentContext = ConversationContextManager.getContext(sessionId);
       console.log('🚀 [DEBUG] processMessage iniciado:', {
         message: message.substring(0, 50),
@@ -426,6 +433,119 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
 
     return response;
   }
+
+  /**
+   * Verifica se a mensagem é uma solicitação de PDF
+   */
+  private static isPDFRequest(message: string): boolean {
+    const pdfKeywords = [
+      'gerar pdf',
+      'gerar em pdf',
+      'fazer pdf',
+      'criar pdf',
+      'baixar pdf',
+      'exportar pdf',
+      'pdf do plano',
+      'plano em pdf',
+      'baixar plano',
+      'exportar plano',
+      'compartilhar pdf',
+      'enviar pdf',
+      'quero pdf',
+      'preciso pdf',
+      'fazer download',
+      'baixar arquivo',
+      'exportar arquivo',
+      'quero gerar o pdf',
+      'quero gerar pdf',
+      'gerar o pdf',
+      'fazer o pdf',
+      'criar o pdf',
+      'baixar o pdf'
+    ];
+
+    // Verificação mais robusta - qualquer menção a PDF deve ser tratada como solicitação
+    const hasPDFKeyword = pdfKeywords.some(keyword => message.includes(keyword));
+    const hasPDFWord = message.includes('pdf');
+    const hasDownloadIntent = message.includes('baixar') || message.includes('download') || message.includes('exportar');
+    const hasGenerateIntent = message.includes('gerar') || message.includes('fazer') || message.includes('criar');
+    
+    // Se contém PDF e alguma ação de geração/download, é solicitação de PDF
+    return hasPDFKeyword || (hasPDFWord && (hasDownloadIntent || hasGenerateIntent));
+  }
+
+  /**
+   * Processa solicitação de PDF
+   */
+  private static async handlePDFRequest(sessionId: string, message: string): Promise<string> {
+    try {
+      console.log('📄 Processando solicitação de PDF...');
+      
+      // Buscar o último plano de aula gerado no histórico
+      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+      const lastPlanoMessage = conversationHistory
+        .filter(msg => msg.sender === 'bot' && 
+                      (msg.text.includes('Prontinho! Aqui está o seu plano de aula') || 
+                       msg.text.includes('### Plano de Aula:')))
+        .pop();
+
+      if (!lastPlanoMessage) {
+        return 'Não encontrei um plano de aula recente para gerar o PDF. Você precisa gerar um plano de aula primeiro! 😊';
+      }
+
+      // Extrair o conteúdo do plano (remover a parte de próximos passos)
+      const planoContent = this.extractPlanoContent(lastPlanoMessage.text);
+      
+      if (!planoContent) {
+        return 'Não consegui extrair o conteúdo do plano de aula. Tente gerar um novo plano! 😊';
+      }
+
+      // Gerar resposta informando que o PDF está sendo criado
+      const response = `Perfeito! Vou gerar o PDF do seu plano de aula para você! 📄✨
+
+O arquivo será baixado automaticamente em alguns segundos.
+
+Enquanto isso, posso te ajudar com:
+👉🏽 Criar outro plano de aula
+👉🏽 Ajustar este plano
+👉🏽 Planejamento semanal
+👉🏽 Tirar dúvidas pedagógicas
+
+O que você gostaria de fazer agora?`;
+
+      // Armazenar o conteúdo do plano para geração de PDF
+      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+
+      return response;
+
+    } catch (error) {
+      console.error('❌ Erro ao processar solicitação de PDF:', error);
+      ChatLogger.logError(sessionId, error as Error, { context: 'pdf_request' });
+      return 'Desculpe, ocorreu um erro ao gerar o PDF. Tente novamente! 😊';
+    }
+  }
+
+  /**
+   * Extrai o conteúdo do plano de aula da mensagem
+   */
+  private static extractPlanoContent(message: string): string | null {
+    try {
+      // Encontrar onde termina o plano e começam os próximos passos
+      const nextStepsIndex = message.indexOf('Prontinho! Aqui está o seu plano de aula');
+      
+      if (nextStepsIndex === -1) {
+        // Se não encontrar a seção de próximos passos, retornar toda a mensagem
+        return message;
+      }
+
+      // Retornar apenas o conteúdo do plano (antes dos próximos passos)
+      return message.substring(0, nextStepsIndex).trim();
+    } catch (error) {
+      console.error('❌ Erro ao extrair conteúdo do plano:', error);
+      return null;
+    }
+  }
+
 
   private static async handleContinuarIntent(sessionId: string, message: string): Promise<string> {
     const context = ConversationContextManager.getContext(sessionId);

@@ -89,6 +89,14 @@ export default function ChatInterface({ sessionId: initialSessionId }: ChatInter
 
         setMessages(prev => [...prev, botMessage]);
         setSessionId(data.sessionId);
+
+        // Verificar se a resposta indica que um PDF será gerado
+        if (data.response && (data.response.includes('PDF do seu plano de aula') || data.response.includes('[PDF_GENERATION_TRIGGER]'))) {
+          // Aguardar um pouco e então gerar o PDF
+          setTimeout(() => {
+            generatePDF(sessionId);
+          }, 2000);
+        }
       } else {
         throw new Error(data.error || 'Erro ao enviar mensagem');
       }
@@ -104,6 +112,65 @@ export default function ChatInterface({ sessionId: initialSessionId }: ChatInter
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const generatePDF = async (currentSessionId: string) => {
+    try {
+      console.log('📄 Gerando PDF...');
+      
+      // Buscar o último plano de aula no histórico
+      const lastPlanoMessage = messages
+        .filter(msg => msg.sender === 'bot' && 
+                      (msg.text.includes('Prontinho! Aqui está o seu plano de aula') || 
+                       msg.text.includes('### Plano de Aula:')))
+        .pop();
+
+      if (!lastPlanoMessage) {
+        console.error('❌ Plano de aula não encontrado');
+        return;
+      }
+
+      // Extrair conteúdo do plano (remover próximos passos)
+      let planoContent = lastPlanoMessage.text;
+      
+      // Tentar remover a seção de próximos passos
+      const nextStepsIndex = planoContent.indexOf('Prontinho! Aqui está o seu plano de aula');
+      if (nextStepsIndex !== -1) {
+        planoContent = planoContent.substring(0, nextStepsIndex).trim();
+      }
+
+      const response = await fetch('/api/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: currentSessionId,
+          planoContent
+        }),
+      });
+
+      if (response.ok) {
+        // Criar blob do PDF
+        const pdfBlob = await response.blob();
+        
+        // Criar URL temporária e fazer download
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plano-aula.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ PDF baixado com sucesso');
+      } else {
+        console.error('❌ Erro ao gerar PDF:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Erro na geração de PDF:', error);
     }
   };
 
