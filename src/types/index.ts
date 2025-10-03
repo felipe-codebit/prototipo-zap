@@ -29,6 +29,7 @@ export type Intent =
   | 'unclear';
 
 export interface PlanoAulaData {
+  [key: string]: any;
   ano?: string;
   tema?: string;
   habilidadeBNCC?: string;
@@ -36,6 +37,7 @@ export interface PlanoAulaData {
 }
 
 export interface PlanejamentoSemanalData {
+  [key: string]: any;
   dataInicio?: string;
   dataFim?: string;
   atividades?: string[];

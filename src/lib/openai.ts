@@ -43,13 +43,13 @@ export class OpenAIService {
         'facil': 'FÁCIL - Atividades introdutórias e de consolidação básica',
         'medio': 'MÉDIO - Atividades de aprofundamento e aplicação',
         'dificil': 'DIFÍCIL - Atividades desafiadoras e de expansão do conhecimento'
-      }[data.nivelDificuldade] || 'MÉDIO - Atividades de aprofundamento e aplicação';
+      }[data.nivelDificuldade || 'medio'] || 'MÉDIO - Atividades de aprofundamento e aplicação';
 
       const prompt = `
 Crie um plano de aula completo com base nas seguintes informações:
 - Ano escolar: ${data.ano}
 - Tema/Habilidade BNCC: ${data.tema || data.habilidadeBNCC}
-- Nível de dificuldade: ${data.nivelDificuldade}
+- Nível de dificuldade: ${data.nivelDificuldade || 'médio'}
 
 IMPORTANTE: Este plano tem nível de atividades "${nivelDescricao}".
 Certifique-se de que todas as atividades, exercícios e avaliações estejam adequados a este nível específico.
@@ -61,13 +61,13 @@ O plano deve incluir:
 4. Conteúdo principal
 5. Metodologia de ensino
 6. Recursos necessários
-7. Atividades práticas (adequadas ao nível ${data.nivelDificuldade})
-8. Avaliação (com critérios para o nível ${data.nivelDificuldade})
+7. Atividades práticas (adequadas ao nível ${data.nivelDificuldade || 'médio'})
+8. Avaliação (com critérios para o nível ${data.nivelDificuldade || 'médio'})
 9. Duração estimada
 
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
-Destaque claramente que as atividades foram desenvolvidas para o nível "${data.nivelDificuldade}".
+Destaque claramente que as atividades foram desenvolvidas para o nível "${data.nivelDificuldade || 'médio'}".
 `;
 
       const response = await openai.chat.completions.create({
@@ -318,14 +318,12 @@ IMPORTANTE:
     message: string,
     currentIntent: string,
     collectedData: Record<string, unknown>,
-    waitingFor: string | null,
     sessionId: string
   ): Promise<Record<string, unknown>> {
     try {
       const prompt = `Você é um extrator de dados para um assistente pedagógico. Analise a mensagem do professor e extraia informações relevantes.
 
 INTENÇÃO ATUAL: ${currentIntent}
-AGUARDANDO POR: ${waitingFor || 'nada específico'}
 DADOS JÁ COLETADOS: ${JSON.stringify(collectedData)}
 MENSAGEM DO PROFESSOR: "${message}"
 

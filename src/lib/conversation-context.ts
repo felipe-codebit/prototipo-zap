@@ -12,9 +12,7 @@ export class ConversationContextManager {
         intentConfidence: 0,
         collectedData: {},
         conversationHistory: [],
-        lastActivity: new Date(),
-        waitingFor: null,
-        lastBotQuestion: null
+        lastActivity: new Date()
       });
     }
 
@@ -118,32 +116,11 @@ export class ConversationContextManager {
     return context.currentIntent;
   }
 
-  static setWaitingFor(sessionId: string, waitingFor: string | null, botQuestion: string | null = null) {
-    const context = this.getContext(sessionId);
-    context.waitingFor = waitingFor;
-    context.lastBotQuestion = botQuestion;
-    context.lastActivity = new Date();
-  }
-
-  static getWaitingFor(sessionId: string): string | null {
-    const context = this.getContext(sessionId);
-    return context.waitingFor;
-  }
-
-  static clearWaitingFor(sessionId: string) {
-    const context = this.getContext(sessionId);
-    context.waitingFor = null;
-    context.lastBotQuestion = null;
-    context.lastActivity = new Date();
-  }
-
   static resetContextKeepingHistory(sessionId: string) {
     const context = this.getContext(sessionId);
     context.currentIntent = null;
     context.intentConfidence = 0;
     context.collectedData = {};
-    context.waitingFor = null;
-    context.lastBotQuestion = null;
     context.lastActivity = new Date();
     // Mantém conversationHistory
   }
