@@ -10,9 +10,13 @@ interface MessageBubbleProps {
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.sender === 'user';
   const isAudio = message.type === 'audio';
+  const isVideo = message.type === 'video';
   const hasAudioUrl = !!message.audioUrl;
+  const hasVideoUrl = !!message.videoUrl;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('pt-BR', {
@@ -42,10 +46,21 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
     }
   };
 
+  const toggleVideo = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
   return (
     <div className={`flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg shadow ${
+        className={`${hasVideoUrl ? 'max-w-sm lg:max-w-md xl:max-w-lg' : 'max-w-xs lg:max-w-md xl:max-w-lg'} px-4 py-2 rounded-lg shadow ${
           isUser
             ? 'bg-[#dcf8c6] text-gray-800'
             : 'bg-white text-gray-800'
@@ -65,8 +80,25 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
+        {/* Player de vídeo (se a mensagem tiver videoUrl) */}
+        {hasVideoUrl && !isUser && (
+          <div className="mb-3">
+            <div className="relative bg-black rounded-lg overflow-hidden">
+              <video
+                ref={videoRef}
+                src={message.videoUrl}
+                className="w-full max-w-sm"
+                controls
+                onPlay={() => setIsVideoPlaying(true)}
+                onPause={() => setIsVideoPlaying(false)}
+                onEnded={() => setIsVideoPlaying(false)}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Player de áudio (se a mensagem tiver audioUrl) */}
-        {hasAudioUrl && !isUser && (
+        {hasAudioUrl && !isUser && !hasVideoUrl && (
           <div className="mb-2">
             <button
               onClick={toggleAudio}

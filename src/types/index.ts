@@ -3,8 +3,9 @@ export interface Message {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
-  type: 'text' | 'audio';
+  type: 'text' | 'audio' | 'video';
   audioUrl?: string;
+  videoUrl?: string;
 }
 
 export interface ConversationContext {

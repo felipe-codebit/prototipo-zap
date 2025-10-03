@@ -382,12 +382,14 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
         `Oi! Eu sou a ANE, sua assistente pedagógica. Como posso te ajudar?`;
 
       console.log('✅ [DEBUG] Resposta LLM para saudação gerada');
-      return botResponse;
+      
+      // Adicionar marcador para vídeo de saudação
+      return `[VIDEO_SAUDACAO]${botResponse}`;
 
     } catch (error) {
       console.error('❌ [DEBUG] Erro no LLM para saudação:', error);
       // Fallback em caso de erro
-      return `Oi! Eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡 Como posso te ajudar hoje?`;
+      return `[VIDEO_SAUDACAO]Oi! Eu sou a ANE, sua assistente pedagógica. 👩🏽‍🏫💡 Como posso te ajudar hoje?`;
     }
   }
 

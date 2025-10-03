@@ -74,17 +74,27 @@ export default function ChatInterface({ sessionId: initialSessionId }: ChatInter
       console.log('📥 Response data:', { 
         hasResponse: !!data.response, 
         hasAudioUrl: !!data.audioUrl,
+        hasVideoUrl: !!data.videoUrl,
         audioUrlLength: data.audioUrl?.length 
       });
 
       if (response.ok) {
+        // Determinar o tipo de mensagem baseado no que foi retornado
+        let messageType: 'text' | 'audio' | 'video' = 'text';
+        if (data.videoUrl) {
+          messageType = 'video';
+        } else if (audioResponsesEnabled && data.audioUrl) {
+          messageType = 'audio';
+        }
+
         const botMessage: Message = {
           id: uuidv4(),
           text: data.response,
           sender: 'bot',
           timestamp: new Date(),
-          type: audioResponsesEnabled ? 'audio' : 'text',
-          audioUrl: data.audioUrl
+          type: messageType,
+          audioUrl: data.audioUrl,
+          videoUrl: data.videoUrl
         };
 
         setMessages(prev => [...prev, botMessage]);

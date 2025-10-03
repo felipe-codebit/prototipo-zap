@@ -31,31 +31,53 @@ export async function POST(request: NextRequest) {
     // Processar mensagem
     const response = await MessageProcessor.processMessage(message, sessionId);
 
-    // Gerar áudio se solicitado
+    // Verificar se a resposta contém marcador de vídeo
+    let processedResponse = response;
+    let videoUrl: string | undefined;
+    
+    if (response && response.includes('[VIDEO_SAUDACAO]')) {
+      // Remover o marcador do texto
+      processedResponse = response.replace('[VIDEO_SAUDACAO]', '');
+      // Definir URL do vídeo de saudação
+      videoUrl = '/api/video?type=saudacao';
+      console.log('🎥 Vídeo de saudação detectado, URL:', videoUrl);
+    }
+
+    // Gerar áudio se solicitado (apenas do texto processado, sem marcadores)
     let audioData: string | undefined;
-    if (generateAudio && response) {
-      const audioBuffer = await OpenAIService.generateAudio(response, sessionId, voice);
+    if (generateAudio && processedResponse) {
+      const audioBuffer = await OpenAIService.generateAudio(processedResponse, sessionId, voice);
       if (audioBuffer) {
         // Converter Buffer para Base64 para enviar no JSON
         audioData = `data:audio/mpeg;base64,${audioBuffer.toString('base64')}`;
       }
     }
 
+    // Determinar o tipo de mensagem
+    let messageType: 'text' | 'audio' | 'video' = 'text';
+    if (videoUrl) {
+      messageType = 'video';
+    } else if (generateAudio && audioData) {
+      messageType = 'audio';
+    }
+
     // Adicionar resposta do bot ao contexto
     ConversationContextManager.addMessage(sessionId, {
       id: uuidv4(),
-      text: response,
+      text: processedResponse,
       sender: 'bot',
       timestamp: new Date(),
-      type: generateAudio ? 'audio' : 'text',
-      audioUrl: audioData
+      type: messageType,
+      audioUrl: audioData,
+      videoUrl: videoUrl
     });
 
     return NextResponse.json({
-      response,
+      response: processedResponse,
       sessionId,
       timestamp: new Date().toISOString(),
-      audioUrl: audioData
+      audioUrl: audioData,
+      videoUrl: videoUrl
     });
 
   } catch (error) {
