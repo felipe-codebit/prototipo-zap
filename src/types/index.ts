@@ -27,6 +27,7 @@ export type Intent =
   | 'despedida'
   | 'sair'
   | 'continuar'
+  | 'revisar_plano'
   | 'unclear';
 
 export interface PlanoAulaData {

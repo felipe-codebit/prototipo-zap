@@ -61,6 +61,8 @@ export default function LogsPanel({ sessionId, onClose }: LogsPanelProps) {
         return 'text-yellow-600 bg-yellow-100';
       case 'despedida':
         return 'text-red-600 bg-red-100';
+      case 'revisar_plano':
+        return 'text-orange-600 bg-orange-100';
       default:
         return 'text-gray-600 bg-gray-100';
     }
@@ -78,6 +80,8 @@ export default function LogsPanel({ sessionId, onClose }: LogsPanelProps) {
         return 'Saudação';
       case 'despedida':
         return 'Despedida';
+      case 'revisar_plano':
+        return 'Revisar Plano';
       case 'unclear':
         return 'Não identificada';
       default:

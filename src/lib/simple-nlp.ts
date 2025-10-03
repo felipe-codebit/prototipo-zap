@@ -10,7 +10,9 @@ export class SimpleNLPService {
     despedida: ['tchau', 'obrigado', 'valeu', 'até logo', 'até mais', 'bye'],
     sair: ['sair', 'cancelar', 'parar', 'reiniciar', 'começar de novo', 'recomeçar', 'volta', 'voltar'],
     // Respostas afirmativas e de continuação
-    continuar: ['ok', 'sim', 'vamos', 'continuar', 'pode ser', 'beleza', 'certo', 'perfeito', 'ótimo', 'legal', 'show', 'vamos lá', 'bora', 'dale', 'isso aí', 'correto', 'exato']
+    continuar: ['ok', 'sim', 'vamos', 'continuar', 'pode ser', 'beleza', 'certo', 'perfeito', 'ótimo', 'legal', 'show', 'vamos lá', 'bora', 'dale', 'isso aí', 'correto', 'exato'],
+    // Revisão de plano de aula
+    revisar_plano: ['alterar', 'mudar', 'trocar', 'modificar', 'ajustar', 'revisar', 'atualizar', 'dificuldade', 'ano', 'tema', 'fácil', 'médio', 'difícil', 'facil', 'medio', 'dificil']
   };
 
   async analyzeIntent(message: string, sessionId: string): Promise<IntentAnalysisResult> {
@@ -119,6 +121,7 @@ INTENÇÕES POSSÍVEIS:
 - saudacao: Cumprimentos iniciais, perguntas sobre funcionalidades ("como você pode ajudar?", "o que você faz?", "o que consegue fazer?")
 - despedida: Agradecimentos ou despedidas
 - sair: Quer cancelar/reiniciar conversa
+- revisar_plano: Quer alterar/mudar/revisar um plano já gerado (ex: "alterar a dificuldade", "mudar o ano", "trocar o tema", "fazer mais fácil", "tornar mais difícil")
 - unclear: Não conseguiu identificar
 
 IMPORTANTE: 

@@ -196,8 +196,70 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
       case 'continuar':
         return this.handleContinuarIntent(sessionId, message);
 
+      case 'revisar_plano':
+        return this.handleRevisarPlanoIntent(sessionId, message);
+
       default:
         return this.handleUnclearIntent(message, sessionId);
+    }
+  }
+
+  private static async handleRevisarPlanoIntent(sessionId: string, message: string): Promise<string> {
+    try {
+      // Verificar se há um plano anterior para revisar
+      const persistentContent = ConversationContextManager.getPersistentContent(sessionId);
+      
+      if (!persistentContent?.lastPlanoContent) {
+        return "Não encontrei um plano de aula anterior para revisar. Você precisa primeiro gerar um plano de aula antes de poder revisá-lo. Gostaria de criar um novo plano?";
+      }
+
+      // Extrair informações de alteração da mensagem
+      const alteracoes = await this.extractAlteracoesPlano(message, sessionId);
+      
+      if (Object.keys(alteracoes).length === 0) {
+        return "Entendi que você quer revisar o plano, mas não consegui identificar o que deseja alterar. Você pode especificar se quer mudar:\n\n• A dificuldade (fácil, médio, difícil)\n• O ano escolar\n• O tema/habilidade BNCC\n\nPor exemplo: 'alterar a dificuldade para fácil' ou 'mudar para 5º ano'";
+      }
+
+      // Obter dados do plano original
+      const dadosOriginais = ConversationContextManager.getCollectedData(sessionId) as PlanoAulaData;
+      
+      // Aplicar alterações
+      const novosDados = { ...dadosOriginais, ...alteracoes };
+      
+      // Atualizar dados coletados
+      Object.keys(alteracoes).forEach(key => {
+        ConversationContextManager.updateCollectedData(sessionId, key, alteracoes[key]);
+      });
+
+      // Gerar novo plano com as alterações
+      const novoPlano = await OpenAIService.generatePlanoAula(novosDados, sessionId);
+      
+      // Preservar o novo conteúdo
+      const planoContent = this.extractPlanoContent(novoPlano);
+      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+
+      // Gerar resposta contextual
+      const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+      const contextualResponse = await OpenAIService.generateContextualResponse(
+        'plano_revisado',
+        {
+          collectedData: { ...novosDados, alteracoes: alteracoes },
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }))
+        },
+        sessionId
+      );
+
+      // Resetar contexto mantendo histórico e dados do plano
+      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanoContent']);
+
+      return `${contextualResponse}\n\n${novoPlano}\n\n✅ Plano revisado com sucesso! As alterações foram aplicadas.`;
+
+    } catch (error) {
+      ChatLogger.logError(sessionId, error as Error, { context: 'revisar_plano', message });
+      return "Desculpe, ocorreu um erro ao revisar o plano. Tente novamente ou digite 'sair' para reiniciar.";
     }
   }
 
@@ -614,6 +676,51 @@ O que você gostaria de fazer agora?`;
       ChatLogger.logError(sessionId, error as Error, { context: 'pdf_request' });
       return 'Desculpe, ocorreu um erro ao gerar o PDF. Tente novamente! 😊';
     }
+  }
+
+  /**
+   * Extrai alterações solicitadas para revisão do plano
+   */
+  private static async extractAlteracoesPlano(message: string, sessionId: string): Promise<Partial<PlanoAulaData>> {
+    const alteracoes: Partial<PlanoAulaData> = {};
+    const msg = message.toLowerCase();
+
+    // Detectar alteração de dificuldade
+    if (msg.includes('dificuldade') || msg.includes('fácil') || msg.includes('médio') || msg.includes('difícil') || 
+        msg.includes('facil') || msg.includes('medio') || msg.includes('dificil')) {
+      
+      if (msg.includes('fácil') || msg.includes('facil')) {
+        alteracoes.nivelDificuldade = 'facil';
+      } else if (msg.includes('médio') || msg.includes('medio')) {
+        alteracoes.nivelDificuldade = 'medio';
+      } else if (msg.includes('difícil') || msg.includes('dificil')) {
+        alteracoes.nivelDificuldade = 'dificil';
+      }
+    }
+
+    // Detectar alteração de ano
+    const anos = ['1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', '9°'];
+    for (const ano of anos) {
+      if (msg.includes(ano)) {
+        alteracoes.ano = ano + ' ano';
+        break;
+      }
+    }
+
+    // Detectar alteração de tema (usar LLM para extrair tema mais complexo)
+    if (msg.includes('tema') || msg.includes('assunto') || msg.includes('conteúdo') || msg.includes('matéria')) {
+      try {
+        const { OpenAIService } = await import('./openai');
+        const temaExtraido = await OpenAIService.extractTemaFromMessage(message, sessionId);
+        if (temaExtraido) {
+          alteracoes.tema = temaExtraido;
+        }
+      } catch (error) {
+        ChatLogger.logError(sessionId, error as Error, { context: 'extract_tema', message });
+      }
+    }
+
+    return alteracoes;
   }
 
   /**

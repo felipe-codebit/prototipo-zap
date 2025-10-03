@@ -37,6 +37,39 @@ export class OpenAIService {
     }
   }
 
+  static async extractTemaFromMessage(message: string, sessionId: string): Promise<string | null> {
+    try {
+      const prompt = `Extraia o tema/assunto educacional mencionado na mensagem do professor. 
+      
+Mensagem: "${message}"
+
+Retorne APENAS o tema/assunto, sem explicações adicionais. Se não conseguir identificar um tema claro, retorne "null".
+
+Exemplos:
+- "alterar o tema para matemática" → "matemática"
+- "mudar para português" → "português" 
+- "trocar por ciências" → "ciências"
+- "fazer sobre história do Brasil" → "história do Brasil"`;
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é um extrator de temas educacionais.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 50,
+        temperature: 0.1
+      });
+
+      const result = response.choices[0]?.message?.content?.trim();
+      return result === 'null' || !result ? null : result;
+
+    } catch (error) {
+      ChatLogger.logError(sessionId, error as Error, { context: 'extract_tema', message });
+      return null;
+    }
+  }
+
   static async generatePlanoAula(data: PlanoAulaData, sessionId: string): Promise<string> {
     try {
       const nivelDescricao = {
@@ -177,7 +210,27 @@ SUA RESPOSTA DEVE:
 - Oferecer próximos passos de forma natural: criar outro plano, organizar a semana, ou tirar dúvidas
 - Ser encorajadora mas breve (2-4 frases curtas)
 - Usar 1-2 emojis sutis
-- Manter tom de colega educadora, não de vendedora
+- Manter tom de colega educadora, não de vendedora`,
+
+        'plano_revisado': `O professor solicitou uma revisão do plano de aula e você acabou de gerar uma nova versão com as alterações solicitadas.
+
+DADOS DO PLANO REVISADO:
+${collectedDataStr}
+
+ALTERAÇÕES APLICADAS:
+${JSON.stringify((context.collectedData as any)?.alteracoes || {}, null, 2)}
+
+CONTEXTO:
+${recentHistory}
+
+SUA RESPOSTA DEVE:
+- Confirmar que as alterações foram aplicadas com sucesso
+- Mencionar brevemente o que foi alterado (dificuldade, ano, tema)
+- Ser positiva e encorajadora sobre a nova versão
+- Oferecer próximos passos: mais alterações, gerar PDF, ou criar novo plano
+- Ser breve e natural (2-3 frases)
+- Usar 1 emoji sutil
+- Manter tom de colega educadora
 
 NÃO:
 - Não seja genérica demais
@@ -338,6 +391,8 @@ IMPORTANTE:
     switch (situation) {
       case 'plano_aula_completo':
         return `🎉 Pronto! Aqui está seu plano de aula personalizado. Espero que seus alunos curtam essas atividades! Quer criar outro plano ou tem alguma dúvida? 😊`;
+      case 'plano_revisado':
+        return `✨ Perfeito! Apliquei as alterações no seu plano. Agora está exatamente como você queria! Quer fazer mais alguma mudança ou gerar o PDF? 📝`;
       case 'planejamento_semanal_completo':
         return `📅 Pronto! Seu planejamento semanal está aí. Com essa organização, sua semana vai fluir melhor! Quer criar planos de aula para essas atividades?`;
       case 'despedida':
