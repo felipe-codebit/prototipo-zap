@@ -543,23 +543,87 @@ Seja prático e realista, considerando o tempo disponível e as atividades propo
       // Criar File object usando fs.createReadStream
       const audioFile = fs.createReadStream(tempFilePath);
       
-      const response = await openai.audio.transcriptions.create({
-        file: audioFile,
-        model: 'whisper-1',
-        language: 'pt'
-      });
-
-      // Limpar arquivo temporário
+      // Primeira tentativa: transcrição direta
       try {
-        fs.unlinkSync(tempFilePath);
-        console.log('🗑️ Arquivo temporário removido');
-      } catch (cleanupError) {
-        console.warn('⚠️ Erro ao remover arquivo temporário:', cleanupError);
-      }
+        const response = await openai.audio.transcriptions.create({
+          file: audioFile,
+          model: 'whisper-1',
+          language: 'pt'
+        });
 
-      console.log('✅ Transcrição concluída:', response.text);
-      ChatLogger.logConversation(sessionId, '[Áudio transcrito]', response.text);
-      return response.text;
+        // Limpar arquivo temporário
+        try {
+          fs.unlinkSync(tempFilePath);
+          console.log('🗑️ Arquivo temporário removido');
+        } catch (cleanupError) {
+          console.warn('⚠️ Erro ao remover arquivo temporário:', cleanupError);
+        }
+
+        console.log('✅ Transcrição concluída:', response.text);
+        ChatLogger.logConversation(sessionId, '[Áudio transcrito]', response.text);
+        return response.text;
+
+      } catch (whisperError: any) {
+        console.warn('⚠️ Erro na primeira tentativa de transcrição:', whisperError.message);
+        
+        // Se o erro for de formato inválido, tentar conversão
+        if (whisperError.message?.includes('Invalid file format') || 
+            whisperError.message?.includes('400')) {
+          
+          console.log('🔄 Tentando conversão de formato...');
+          
+          try {
+            // Tentar com extensão .wav (mais compatível)
+            const wavFilePath = tempFilePath.replace('.webm', '.wav');
+            fs.copyFileSync(tempFilePath, wavFilePath);
+            
+            const wavFile = fs.createReadStream(wavFilePath);
+            
+            const response = await openai.audio.transcriptions.create({
+              file: wavFile,
+              model: 'whisper-1',
+              language: 'pt'
+            });
+
+            // Limpar arquivos temporários
+            try {
+              fs.unlinkSync(tempFilePath);
+              fs.unlinkSync(wavFilePath);
+              console.log('🗑️ Arquivos temporários removidos');
+            } catch (cleanupError) {
+              console.warn('⚠️ Erro ao remover arquivos temporários:', cleanupError);
+            }
+
+            console.log('✅ Transcrição concluída após conversão:', response.text);
+            ChatLogger.logConversation(sessionId, '[Áudio transcrito após conversão]', response.text);
+            return response.text;
+
+          } catch (conversionError) {
+            console.error('❌ Erro na conversão de formato:', conversionError);
+            
+            // Limpar arquivos temporários
+            try {
+              fs.unlinkSync(tempFilePath);
+              if (fs.existsSync(tempFilePath.replace('.webm', '.wav'))) {
+                fs.unlinkSync(tempFilePath.replace('.webm', '.wav'));
+              }
+            } catch (cleanupError) {
+              console.warn('⚠️ Erro ao remover arquivos temporários:', cleanupError);
+            }
+            
+            throw conversionError;
+          }
+        } else {
+          // Limpar arquivo temporário
+          try {
+            fs.unlinkSync(tempFilePath);
+          } catch (cleanupError) {
+            console.warn('⚠️ Erro ao remover arquivo temporário:', cleanupError);
+          }
+          
+          throw whisperError;
+        }
+      }
 
     } catch (error) {
       console.error('❌ Erro na transcrição:', error);

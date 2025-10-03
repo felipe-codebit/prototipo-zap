@@ -47,6 +47,16 @@ export async function POST(request: NextRequest) {
     // Converter arquivo para buffer
     const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
     console.log('✅ Buffer criado:', audioBuffer.length, 'bytes');
+    
+    // Validação adicional do formato
+    const isValidFormat = validateAudioFormat(audioFile.type, audioBuffer);
+    if (!isValidFormat) {
+      console.log('❌ Formato de áudio inválido detectado');
+      return NextResponse.json(
+        { error: 'Formato de áudio não suportado ou corrompido' },
+        { status: 400 }
+      );
+    }
 
     console.log('🎤 Iniciando transcrição...');
     // Transcrever áudio
@@ -117,6 +127,63 @@ export async function POST(request: NextRequest) {
       { status: statusCode }
     );
   }
+}
+
+// Função auxiliar para validar formato de áudio
+function validateAudioFormat(mimeType: string, buffer: Buffer): boolean {
+  // Verificar se o buffer não está vazio
+  if (buffer.length === 0) {
+    return false;
+  }
+  
+  // Verificar tipos MIME suportados
+  const supportedMimeTypes = [
+    'audio/webm',
+    'audio/webm;codecs=opus',
+    'audio/wav',
+    'audio/mp3',
+    'audio/mp4',
+    'audio/m4a',
+    'audio/ogg',
+    'audio/oga'
+  ];
+  
+  if (!supportedMimeTypes.some(type => mimeType.includes(type.split(';')[0]))) {
+    return false;
+  }
+  
+  // Verificar assinaturas de arquivo (magic numbers)
+  const webmSignature = buffer.subarray(0, 4);
+  const wavSignature = buffer.subarray(0, 4);
+  const mp3Signature = buffer.subarray(0, 3);
+  
+  // WebM: 0x1A 0x45 0xDF 0xA3
+  if (mimeType.includes('webm') && 
+      webmSignature[0] === 0x1A && 
+      webmSignature[1] === 0x45 && 
+      webmSignature[2] === 0xDF && 
+      webmSignature[3] === 0xA3) {
+    return true;
+  }
+  
+  // WAV: "RIFF" (0x52 0x49 0x46 0x46)
+  if (mimeType.includes('wav') && 
+      wavSignature[0] === 0x52 && 
+      wavSignature[1] === 0x49 && 
+      wavSignature[2] === 0x46 && 
+      wavSignature[3] === 0x46) {
+    return true;
+  }
+  
+  // MP3: ID3 tag (0x49 0x44 0x33) ou frame sync (0xFF 0xFB/0xFA)
+  if (mimeType.includes('mp3') && 
+      ((mp3Signature[0] === 0x49 && mp3Signature[1] === 0x44 && mp3Signature[2] === 0x33) ||
+       (mp3Signature[0] === 0xFF && (mp3Signature[1] === 0xFB || mp3Signature[1] === 0xFA)))) {
+    return true;
+  }
+  
+  // Para outros formatos, assumir válido se passou nas verificações anteriores
+  return true;
 }
 
 export async function GET() {

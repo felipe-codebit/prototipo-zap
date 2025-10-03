@@ -52,14 +52,37 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
       }
 
       // Criar MediaRecorder com configurações específicas
-      const options = { mimeType: 'audio/webm;codecs=opus' };
-      let mediaRecorder: MediaRecorder;
+      // Tentar diferentes formatos em ordem de preferência
+      const supportedTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/wav'
+      ];
       
-      try {
-        mediaRecorder = new MediaRecorder(stream, options);
-      } catch (e) {
-        // Fallback para configuração padrão
+      let mediaRecorder: MediaRecorder;
+      let selectedMimeType = '';
+      
+      // Encontrar o primeiro tipo suportado
+      for (const mimeType of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          try {
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            selectedMimeType = mimeType;
+            console.log('✅ Tipo de áudio selecionado:', mimeType);
+            break;
+          } catch (e) {
+            console.warn('⚠️ Falha ao criar MediaRecorder com:', mimeType);
+            continue;
+          }
+        }
+      }
+      
+      // Fallback para configuração padrão se nenhum tipo específico funcionar
+      if (!mediaRecorder) {
         mediaRecorder = new MediaRecorder(stream);
+        selectedMimeType = mediaRecorder.mimeType || 'audio/webm';
+        console.log('⚠️ Usando configuração padrão:', selectedMimeType);
       }
 
       mediaRecorderRef.current = mediaRecorder;
@@ -81,7 +104,7 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
         }
 
         // Criar blob com o tipo correto
-        const mimeType = chunksRef.current[0].type || 'audio/webm';
+        const mimeType = selectedMimeType || chunksRef.current[0].type || 'audio/webm';
         const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         
         console.log('Blob criado:', audioBlob.size, 'bytes, tipo:', audioBlob.type);
