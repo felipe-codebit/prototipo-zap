@@ -73,11 +73,11 @@ export class NLPService {
       const manager = this.getManager();
       const result = await manager.process('pt', message);
 
-      const intent: Intent = result.intent || 'unclear';
+      const intent: Intent = (result.intent as Intent) || 'unclear';
       const confidence = result.score || 0;
 
       // Simplified entity extraction - only basic entities
-      const entities: Record<string, any> = {};
+      const entities: Record<string, unknown> = {};
 
       ChatLogger.logIntent(sessionId, intent, confidence, message);
 
