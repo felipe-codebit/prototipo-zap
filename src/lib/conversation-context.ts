@@ -1,4 +1,4 @@
-import { ConversationContext, Intent, Message, PlanoAulaData, CalendarioEscolarData } from '@/types';
+import { ConversationContext, Intent, Message, PlanoAulaData } from '@/types';
 import { ChatLogger } from './logger';
 
 export class ConversationContextManager {
@@ -12,7 +12,9 @@ export class ConversationContextManager {
         intentConfidence: 0,
         collectedData: {},
         conversationHistory: [],
-        lastActivity: new Date()
+        lastActivity: new Date(),
+        waitingFor: null,
+        lastBotQuestion: null
       });
     }
 
