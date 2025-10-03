@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { PlanoAulaData, PlanejamentoSemanalData } from '@/types';
+import { PlanoAulaData, PlanejamentoSemanalData, Message } from '@/types';
 import { ConversationContextManager } from './conversation-context';
 import { ChatLogger } from './logger';
 
@@ -289,7 +289,7 @@ IMPORTANTE:
 
   private static getFallbackResponseForSituation(
     situation: string,
-    context: { collectedData?: Record<string, unknown> }
+    _context: { collectedData?: Record<string, unknown> }
   ): string {
     switch (situation) {
       case 'plano_aula_completo':
@@ -526,9 +526,9 @@ Seja prático e realista, considerando o tempo disponível e as atividades propo
       console.log('📊 Buffer size:', audioBuffer.length, 'bytes');
       
       // Criar um arquivo temporário usando fs para Node.js
-      const fs = require('fs');
-      const path = require('path');
-      const os = require('os');
+      const fs = await import('fs');
+      const path = await import('path');
+      const os = await import('os');
       
       // Criar arquivo temporário
       const tempDir = os.tmpdir();
@@ -687,7 +687,7 @@ Ofereça um caminho próximo/alternativo dentro do escopo (roteamento por simila
     }
   }
 
-  private static buildConversationContext(history: any[], collectedData: any): string {
+  private static buildConversationContext(history: Message[], collectedData: Record<string, unknown>): string {
     let context = '';
 
     if (Object.keys(collectedData).length > 0) {

@@ -11,7 +11,7 @@ export interface ConversationContext {
   sessionId: string;
   currentIntent: Intent | null;
   intentConfidence: number;
-  collectedData: Record<string, any>;
+  collectedData: Record<string, unknown>;
   conversationHistory: Message[];
   lastActivity: Date;
   waitingFor: string | null; // Campo que indica que tipo de resposta estamos esperando
@@ -29,7 +29,7 @@ export type Intent =
   | 'unclear';
 
 export interface PlanoAulaData {
-  [key: string]: any;
+  [key: string]: unknown;
   ano?: string;
   tema?: string;
   habilidadeBNCC?: string;
@@ -37,7 +37,7 @@ export interface PlanoAulaData {
 }
 
 export interface PlanejamentoSemanalData {
-  [key: string]: any;
+  [key: string]: unknown;
   dataInicio?: string;
   dataFim?: string;
   atividades?: string[];
@@ -47,7 +47,7 @@ export interface PlanejamentoSemanalData {
 export interface IntentAnalysisResult {
   intent: Intent;
   confidence: number;
-  entities: Record<string, any>;
+  entities: Record<string, unknown>;
   missingData?: string[];
 }
 
@@ -58,5 +58,5 @@ export interface LogEntry {
   sessionId?: string;
   intent?: Intent;
   confidence?: number;
-  data?: any;
+  data?: unknown;
 }

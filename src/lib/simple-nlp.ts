@@ -91,7 +91,7 @@ export class SimpleNLPService {
   private async analyzeLLMIntent(message: string, sessionId: string): Promise<IntentAnalysisResult> {
     try {
       // Importar OpenAI apenas quando necessário
-      const { OpenAIService } = await import('./openai');
+      // const { OpenAIService } = await import('./openai');
 
       // Buscar contexto da conversa
       const { ConversationContextManager } = await import('./conversation-context');
@@ -163,7 +163,7 @@ Confidence de 0.0 a 1.0 (seja conservador - use confidence alta apenas quando mu
     }
   }
 
-  async addTrainingData(intent: string, utterance: string) {
+  async addTrainingData(_intent: string, _utterance: string) {
     // Para este sistema simples, poderíamos adicionar palavras-chave dinamicamente
     // mas por enquanto vamos manter estático
   }
