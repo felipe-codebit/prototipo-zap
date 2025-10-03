@@ -491,7 +491,26 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
       'gere o pdf',
       'gera o pdf',
       'gere pdf',
-      'gera pdf'
+      'gera pdf',
+      'gera o pdf',
+      'faz o pdf',
+      'cria o pdf',
+      'baixa o pdf',
+      'exporta o pdf',
+      'compartilha o pdf',
+      'envia o pdf',
+      'quero o pdf',
+      'preciso o pdf',
+      'faz o pdf',
+      'cria o pdf',
+      'baixa o pdf',
+      'exporta o pdf',
+      'compartilha o pdf',
+      'envia o pdf',
+      'quero o pdf',
+      'preciso o pdf',
+      'faz o pdf',
+      'quero em pdf'
     ];
 
     // Verificação mais robusta - qualquer menção a PDF deve ser tratada como solicitação
