@@ -292,10 +292,12 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
       const planoContent = this.extractPlanoContent(planoAula);
       if (planoContent) {
         ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+        // Também preservar os dados do plano para referência futura
+        ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoData', data);
       }
 
-      // Limpar contexto mas preservar o conteúdo do plano
-      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanoContent']);
+      // Limpar contexto mas preservar o conteúdo do plano e dados
+      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanoContent', 'lastPlanoData']);
 
       return `${contextualResponse}\n\n${planoAula}`;
     } else {
@@ -332,9 +334,11 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
       // IMPORTANTE: Preservar o conteúdo do planejamento para geração de PDF posterior
       const planejamentoContent = planejamento; // Para planejamento semanal, usar o conteúdo completo
       ConversationContextManager.updateCollectedData(sessionId, 'lastPlanejamentoContent', planejamentoContent);
+      // Também preservar os dados do planejamento para referência futura
+      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanejamentoData', data);
 
-      // Limpar contexto mas preservar o conteúdo do planejamento
-      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanejamentoContent']);
+      // Limpar contexto mas preservar o conteúdo do planejamento e dados
+      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanejamentoContent', 'lastPlanejamentoData']);
 
       return `${contextualResponse}\n\n${planejamento}`;
     } else {
@@ -346,6 +350,27 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
   private static async askForMissingPlanoAulaData(missingData: string[], sessionId: string): Promise<string> {
     const collectedData = ConversationContextManager.getCollectedData(sessionId);
     const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+
+    // Verificar se o usuário está pedindo sugestões de tema
+    const lastUserMessage = conversationHistory
+      .filter(msg => msg.sender === 'user')
+      .pop()?.text.toLowerCase() || '';
+
+    const isAskingForSuggestions = lastUserMessage.includes('sugira') || 
+                                  lastUserMessage.includes('sugestão') || 
+                                  lastUserMessage.includes('sugestões') ||
+                                  lastUserMessage.includes('tanto faz') ||
+                                  lastUserMessage.includes('qualquer') ||
+                                  lastUserMessage.includes('não sei') ||
+                                  lastUserMessage.includes('nao sei') ||
+                                  lastUserMessage.includes('me ajuda') ||
+                                  lastUserMessage.includes('me ajuda a escolher');
+
+    if (isAskingForSuggestions && missingData.includes('tema ou habilidade BNCC')) {
+      // Gerar sugestões de temas baseadas no ano escolar
+      const ano = collectedData.ano || '5º ano'; // Default para 5º ano se não especificado
+      return await this.generateThemeSuggestions(ano, sessionId);
+    }
 
     // Gera a pergunta conversacional usando a LLM para todos os dados faltantes
     const question = await OpenAIService.generateConversationalQuestion(
@@ -389,8 +414,23 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
         apiKey: process.env.OPENAI_API_KEY,
       });
 
+      // Verificar se há um plano anterior para referência contextual
+      const persistentContent = ConversationContextManager.getPersistentContent(sessionId);
+      const hasPreviousPlan = persistentContent?.lastPlanoContent || persistentContent?.lastPlanejamentoContent;
+      
+      let contextInfo = '';
+      if (hasPreviousPlan) {
+        contextInfo = `
+CONTEXTO IMPORTANTE: O professor já tem um plano anterior gerado nesta conversa. 
+Se ele fizer uma saudação simples, mencione que pode continuar trabalhando com o plano anterior ou criar um novo.
+Se ele perguntar sobre funcionalidades, inclua opções como "gerar PDF do plano anterior" ou "ajustar o plano".
+`;
+      }
+
       const promptParaSaudacao = `
 A mensagem do professor: "${message}"
+
+${contextInfo}
 
 ➡️ Regras de comportamento:
 
@@ -410,6 +450,13 @@ Liste claramente suas principais funções:
 4. Se o professor já trouxer uma solicitação, adapte a explicação acima ao contexto e incentive que ele dê mais detalhes.
 
 5. SEMPRE finalize mostrando que é um prazer ajudar.
+
+${hasPreviousPlan ? `
+6. IMPORTANTE: Se há um plano anterior, mencione as opções de continuar com ele:
+- Gerar PDF do plano anterior
+- Ajustar o plano anterior
+- Criar um novo plano
+` : ''}
 
 EXEMPLOS DE RESPOSTAS:
 
@@ -572,7 +619,38 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
       'quero o pdf',
       'preciso o pdf',
       'faz o pdf',
-      'quero em pdf'
+      'quero em pdf',
+      // Termos coloquiais para solicitação de PDF
+      'manda o plano',
+      'manda o pdf',
+      'manda pdf',
+      'manda plano',
+      'envia o plano',
+      'envia plano',
+      'me manda o plano',
+      'me manda o pdf',
+      'me manda pdf',
+      'me manda plano',
+      'me envia o plano',
+      'me envia o pdf',
+      'me envia pdf',
+      'me envia plano',
+      'pode mandar o plano',
+      'pode mandar o pdf',
+      'pode mandar pdf',
+      'pode mandar plano',
+      'pode enviar o plano',
+      'pode enviar o pdf',
+      'pode enviar pdf',
+      'pode enviar plano',
+      'manda aí o plano',
+      'manda aí o pdf',
+      'manda aí pdf',
+      'manda aí plano',
+      'envia aí o plano',
+      'envia aí o pdf',
+      'envia aí pdf',
+      'envia aí plano'
     ];
 
     // Verificação mais robusta - qualquer menção a PDF deve ser tratada como solicitação
@@ -580,9 +658,14 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
     const hasPDFWord = msg.includes('pdf');
     const hasDownloadIntent = msg.includes('baixar') || msg.includes('download') || msg.includes('exportar');
     const hasGenerateIntent = msg.includes('gerar') || msg.includes('fazer') || msg.includes('criar') || msg.includes('gere') || msg.includes('gera');
+    const hasSendIntent = msg.includes('manda') || msg.includes('envia') || msg.includes('enviar');
+    const hasPlanoWord = msg.includes('plano');
     
-    // Se contém PDF e alguma ação de geração/download, é solicitação de PDF
-    const isPDFRequest = hasPDFKeyword || (hasPDFWord && (hasDownloadIntent || hasGenerateIntent));
+    // Se contém PDF e alguma ação de geração/download/envio, é solicitação de PDF
+    // Ou se contém "plano" com intenção de envio/geração
+    const isPDFRequest = hasPDFKeyword || 
+                        (hasPDFWord && (hasDownloadIntent || hasGenerateIntent || hasSendIntent)) ||
+                        (hasPlanoWord && (hasSendIntent || hasDownloadIntent || hasGenerateIntent));
     
     console.log('🔍 [DEBUG] Verificação de PDF:', {
       message: msg,
@@ -590,6 +673,8 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
       hasPDFWord,
       hasDownloadIntent,
       hasGenerateIntent,
+      hasSendIntent,
+      hasPlanoWord,
       isPDFRequest
     });
     
@@ -724,6 +809,74 @@ O que você gostaria de fazer agora?`;
   }
 
   /**
+   * Gera sugestões de temas baseadas no ano escolar
+   */
+  private static async generateThemeSuggestions(ano: string, sessionId: string): Promise<string> {
+    try {
+      const openai = await import('openai');
+      const client = new openai.default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const prompt = `Você é uma assistente pedagógica especializada em sugestões de temas para planos de aula.
+
+O professor está criando um plano de aula para o ${ano} e pediu sugestões de tema.
+
+Gere 5 sugestões de temas interessantes e adequados para o ${ano}, considerando:
+- A faixa etária dos alunos
+- Os interesses típicos dessa idade
+- A relevância pedagógica
+- A possibilidade de atividades práticas e engajantes
+
+Formate a resposta de forma conversacional e acolhedora, como se fosse a ANE falando.
+
+Exemplo de formato:
+"Que legal que você quer sugestões! 💡 Aqui estão algumas ideias interessantes para o ${ano}:
+
+1. [Tema 1] - [Breve explicação do porquê é interessante]
+2. [Tema 2] - [Breve explicação do porquê é interessante]
+3. [Tema 3] - [Breve explicação do porquê é interessante]
+4. [Tema 4] - [Breve explicação do porquê é interessante]
+5. [Tema 5] - [Breve explicação do porquê é interessante]
+
+Qual desses temas te chama mais atenção? Ou se preferir, pode me dizer outro tema que você tem em mente! 😊"`;
+
+      const response = await client.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'Você é a ANE, uma assistente pedagógica amigável e experiente.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 400,
+        temperature: 0.7
+      });
+
+      return response.choices[0]?.message?.content || 
+        `Que legal que você quer sugestões! 💡 Aqui estão algumas ideias interessantes para o ${ano}:
+
+1. **Frações e decimais** - Um tema super prático que os alunos usam no dia a dia
+2. **Sistema solar** - Sempre fascina as crianças e permite muitas atividades criativas
+3. **Ciclo da água** - Tema visual e interativo, perfeito para experimentos
+4. **História do Brasil** - Conteúdo rico e importante para a formação cidadã
+5. **Animais e habitats** - Tema que desperta curiosidade e permite pesquisas
+
+Qual desses temas te chama mais atenção? Ou se preferir, pode me dizer outro tema que você tem em mente! 😊`;
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar sugestões de tema:', error);
+      return `Que legal que você quer sugestões! 💡 Aqui estão algumas ideias interessantes para o ${ano}:
+
+1. **Frações e decimais** - Um tema super prático que os alunos usam no dia a dia
+2. **Sistema solar** - Sempre fascina as crianças e permite muitas atividades criativas
+3. **Ciclo da água** - Tema visual e interativo, perfeito para experimentos
+4. **História do Brasil** - Conteúdo rico e importante para a formação cidadã
+5. **Animais e habitats** - Tema que desperta curiosidade e permite pesquisas
+
+Qual desses temas te chama mais atenção? Ou se preferir, pode me dizer outro tema que você tem em mente! 😊`;
+    }
+  }
+
+  /**
    * Extrai o conteúdo do plano de aula da mensagem
    */
   private static extractPlanoContent(message: string): string | null {
@@ -782,6 +935,11 @@ O que você gostaria de fazer agora?`;
   private static async handleUnclearIntent(message: string, sessionId: string): Promise<string> {
     const msg = message.toLowerCase();
     const conversationHistory = ConversationContextManager.getConversationHistory(sessionId);
+    const context = ConversationContextManager.getContext(sessionId);
+
+    // Verificar se há um plano anterior e o usuário pode estar se referindo a ele
+    const persistentContent = ConversationContextManager.getPersistentContent(sessionId);
+    const hasPreviousPlan = persistentContent?.lastPlanoContent || persistentContent?.lastPlanejamentoContent;
 
     // Se o usuário diz que não quer algo ou está negando
     if (msg.includes('não quero') || msg.includes('nao quero') ||
@@ -806,6 +964,19 @@ O que você gostaria de fazer agora?`;
 
       // Processar como tira-dúvidas
       return await OpenAIService.generateResponse(message, sessionId);
+    }
+
+    // Se há um plano anterior e a mensagem é vaga, oferecer opções contextuais
+    if (hasPreviousPlan && (msg.length < 20 || msg.includes('e agora') || msg.includes('o que') || msg.includes('como'))) {
+      return `Entendi! Vejo que você tem um plano anterior. O que você gostaria de fazer agora?
+
+👉🏽 **Gerar PDF** do plano (digite "manda o plano" ou "gerar pdf")
+👉🏽 **Criar novo plano** de aula
+👉🏽 **Ajustar o plano** anterior (alterar dificuldade, ano ou tema)
+👉🏽 **Planejamento semanal**
+👉🏽 **Tirar dúvidas** pedagógicas
+
+Qual opção te interessa? 😊`;
     }
 
     // Fallback geral - intenção não clara
