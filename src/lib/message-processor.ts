@@ -84,7 +84,7 @@ export class MessageProcessor {
 
     if (!latestMessage) return;
 
-    // Usar a intenção atual se estivermos em coleta de dados
+    // Usar a intenção atual se estivermos coletando informações do usuário
     const effectiveIntent = (currentContext.currentIntent &&
                            Object.keys(currentContext.collectedData).length > 0)
                            ? currentContext.currentIntent

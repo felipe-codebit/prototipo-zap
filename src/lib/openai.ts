@@ -209,7 +209,7 @@ O que você gostaria de fazer?"` },
         : 'Início da conversa';
 
       const situationPrompts: Record<string, string> = {
-        'plano_aula_completo': `O professor completou a coleta de dados e você acabou de gerar um plano de aula personalizado para ele.
+        'plano_aula_completo': `O professor finalizou o preenchimento das informações e você acabou de gerar um plano de aula personalizado para ele.
 
 DADOS DO PLANO:
 ${collectedDataStr}
@@ -250,7 +250,7 @@ NÃO:
 - Não faça um discurso longo
 - Não liste as funcionalidades como menu`,
 
-        'planejamento_semanal_completo': `O professor completou a coleta de dados e você acabou de gerar um planejamento semanal para ele.
+        'planejamento_semanal_completo': `O professor finalizou o preenchimento das informações e você acabou de gerar um planejamento semanal para ele.
 
 DADOS DO PLANEJAMENTO:
 ${collectedDataStr}
