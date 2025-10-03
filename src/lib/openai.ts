@@ -123,19 +123,6 @@ O plano deve seguir EXATAMENTE esta estrutura:
    - Instrumentos de avaliação
    - Momentos avaliativos
 
-8. **REFLEXÃO DO PROFESSOR**:
-   Esta seção é um espaço para você refletir sobre sua prática pedagógica após implementar este plano. Use estas perguntas como guia para uma reflexão profunda e construtiva:
-   
-   💭 **Momentos de sucesso**: Quais foram os momentos em que você sentiu que os alunos realmente compreenderam o conteúdo? O que contribuiu para esse sucesso?
-   
-   🔍 **Desafios encontrados**: Que dificuldades surgiram durante a aula? Como você lidou com elas? O que faria diferente?
-   
-   👥 **Engajamento dos alunos**: Como foi a participação da turma? Quais estratégias funcionaram melhor para manter o interesse?
-   
-   📈 **Aprendizagens observadas**: Que evidências você percebeu de que os alunos aprenderam? Como você mediu o progresso?
-   
-   🚀 **Próximos passos**: Com base nesta experiência, que ajustes faria no plano? Que atividades complementares considera importantes?
-
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
 Destaque claramente que as atividades foram desenvolvidas para o nível "${data.nivelDificuldade || 'médio'}".
