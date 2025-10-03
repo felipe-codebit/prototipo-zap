@@ -361,33 +361,6 @@ export default function ChatInterface({ sessionId: initialSessionId }: ChatInter
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 bg-[#efeae2]">
-          {messages.length === 0 && (
-            <div className="text-center text-gray-500 mt-8">
-              <div className="bg-white rounded-lg p-6 shadow-sm max-w-md mx-auto">
-                <h3 className="text-lg font-medium mb-2">👋 Oi! Que bom te ver aqui!</h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  Sou seu assistente educacional e estou <strong>super empolgado</strong> para ajudar você! ✨
-                </p>
-                <div className="text-sm text-left space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span>🎯</span>
-                    <span>Criar planos de aula personalizados</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span>❓</span>
-                    <span>Tirar dúvidas educacionais</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span>📅</span>
-                    <span>Planejar sua semana de trabalho</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-4 font-medium">
-                  Manda uma mensagem ou áudio! Por onde começamos? 😊
-                </p>
-              </div>
-            </div>
-          )}
 
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
