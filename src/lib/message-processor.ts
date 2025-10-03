@@ -7,15 +7,16 @@ import { Intent, PlanoAulaData, PlanejamentoSemanalData } from '@/types';
 export class MessageProcessor {
   static async processMessage(message: string, sessionId: string): Promise<string> {
     try {
-      // Verificação prioritária para comando "sair" - deve funcionar em qualquer momento
       const msg = message.toLowerCase().trim();
+      
+      // Verificação prioritária para comando "sair" - deve funcionar em qualquer momento
       if (['sair', 'cancelar', 'parar', 'reiniciar', 'recomeçar', 'volta', 'voltar'].includes(msg) ||
           msg.includes('começar de novo') || msg.includes('começar denovo') ||
           msg.includes('sair daqui') || msg.includes('cancelar tudo')) {
         return this.handleSairIntent(sessionId);
       }
 
-      // Verificação prioritária para geração de PDF
+      // Verificação prioritária para geração de PDF - DEVE vir antes da análise de intenção
       if (this.isPDFRequest(msg)) {
         console.log('📄 Solicitação de PDF detectada:', message);
         console.log('📄 Interrompendo processamento normal para gerar PDF');
@@ -449,6 +450,8 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
    * Verifica se a mensagem é uma solicitação de PDF
    */
   private static isPDFRequest(message: string): boolean {
+    const msg = message.toLowerCase().trim();
+    
     const pdfKeywords = [
       'gerar pdf',
       'gerar em pdf',
@@ -472,17 +475,32 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
       'gerar o pdf',
       'fazer o pdf',
       'criar o pdf',
-      'baixar o pdf'
+      'baixar o pdf',
+      'gere o pdf',
+      'gera o pdf',
+      'gere pdf',
+      'gera pdf'
     ];
 
     // Verificação mais robusta - qualquer menção a PDF deve ser tratada como solicitação
-    const hasPDFKeyword = pdfKeywords.some(keyword => message.includes(keyword));
-    const hasPDFWord = message.includes('pdf');
-    const hasDownloadIntent = message.includes('baixar') || message.includes('download') || message.includes('exportar');
-    const hasGenerateIntent = message.includes('gerar') || message.includes('fazer') || message.includes('criar');
+    const hasPDFKeyword = pdfKeywords.some(keyword => msg.includes(keyword));
+    const hasPDFWord = msg.includes('pdf');
+    const hasDownloadIntent = msg.includes('baixar') || msg.includes('download') || msg.includes('exportar');
+    const hasGenerateIntent = msg.includes('gerar') || msg.includes('fazer') || msg.includes('criar') || msg.includes('gere') || msg.includes('gera');
     
     // Se contém PDF e alguma ação de geração/download, é solicitação de PDF
-    return hasPDFKeyword || (hasPDFWord && (hasDownloadIntent || hasGenerateIntent));
+    const isPDFRequest = hasPDFKeyword || (hasPDFWord && (hasDownloadIntent || hasGenerateIntent));
+    
+    console.log('🔍 [DEBUG] Verificação de PDF:', {
+      message: msg,
+      hasPDFKeyword,
+      hasPDFWord,
+      hasDownloadIntent,
+      hasGenerateIntent,
+      isPDFRequest
+    });
+    
+    return isPDFRequest;
   }
 
   /**

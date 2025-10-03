@@ -112,7 +112,7 @@ export class SimpleNLPService {
       const prompt = `Você é um classificador de intenções para um assistente educacional. Analise a mensagem do professor e determine a intenção.
 
 INTENÇÕES POSSÍVEIS:
-- plano_aula: Quer criar/elaborar planos de aula
+- plano_aula: Quer criar/elaborar planos de aula (ex: "quero um plano de aula", "criar aula sobre...")
 - tira_duvidas: Tem dúvidas educacionais, quer explicações
 - planejamento_semanal: Quer organizar/planejar semana de trabalho
 - continuar: Respostas afirmativas (sim, ok, vamos, etc) ou quer continuar algo
@@ -121,7 +121,9 @@ INTENÇÕES POSSÍVEIS:
 - sair: Quer cancelar/reiniciar conversa
 - unclear: Não conseguiu identificar
 
-IMPORTANTE: Perguntas sobre funcionalidades como "como você pode ajudar?", "o que você faz?", "o que consegue fazer?", "quais suas funcionalidades?" devem ser classificadas como "saudacao" com alta confiança.
+IMPORTANTE: 
+- Perguntas sobre funcionalidades como "como você pode ajudar?", "o que você faz?", "o que consegue fazer?", "quais suas funcionalidades?" devem ser classificadas como "saudacao" com alta confiança.
+- Comandos de geração/exportação como "gere o pdf", "baixar pdf", "exportar" devem ser classificados como "unclear" com baixa confiança, pois serão tratados por lógica específica.
 
 ${contextString}
 
