@@ -54,16 +54,41 @@ Crie um plano de aula completo com base nas seguintes informações:
 IMPORTANTE: Este plano tem nível de atividades "${nivelDescricao}".
 Certifique-se de que todas as atividades, exercícios e avaliações estejam adequados a este nível específico.
 
-O plano deve incluir:
-1. **NÍVEL DE DIFICULDADE**: ${nivelDescricao}
-2. Objetivo geral
-3. Objetivos específicos
-4. Conteúdo principal
-5. Metodologia de ensino
-6. Recursos necessários
-7. Atividades práticas (adequadas ao nível ${data.nivelDificuldade || 'médio'})
-8. Avaliação (com critérios para o nível ${data.nivelDificuldade || 'médio'})
-9. Duração estimada
+PRIMEIRO: Sempre identifique e retorne a habilidade específica da BNCC que será utilizada como base para este plano de aula. Consulte a Base Nacional Comum Curricular (BNCC) disponível em: https://basenacionalcomum.mec.gov.br/images/BNCC_EI_EF_110518_versaofinal_site.pdf
+
+O plano deve seguir EXATAMENTE esta estrutura:
+
+1. **HABILIDADE BNCC**: [Identifique e cite a habilidade específica da BNCC que fundamenta este plano]
+
+2. **NÍVEL DE DIFICULDADE**: ${nivelDescricao}
+
+3. **INTRODUÇÃO**: 
+   - Objetivo geral
+   - Objetivos específicos
+   - Conteúdo principal
+   - Metodologia de ensino
+   - Recursos necessários
+   - Duração estimada
+
+4. **ATIVIDADES**: 
+   - Atividades práticas detalhadas (adequadas ao nível ${data.nivelDificuldade || 'médio'})
+   - Sequência didática
+   - Estratégias de ensino
+
+5. **REFLEXÃO**: 
+   - Momentos de reflexão com os estudantes
+   - Discussões e questionamentos
+   - Conexões com o cotidiano
+
+6. **SISTEMATIZAÇÃO**: 
+   - Consolidação dos conhecimentos
+   - Síntese dos conteúdos trabalhados
+   - Registro das aprendizagens
+
+7. **AVALIAÇÃO**: 
+   - Critérios de avaliação (adequados ao nível ${data.nivelDificuldade || 'médio'})
+   - Instrumentos de avaliação
+   - Momentos avaliativos
 
 Seja detalhado e prático, oferecendo sugestões concretas que o professor possa implementar imediatamente.
 Use linguagem clara e didática, adequada para o nível educacional especificado.
