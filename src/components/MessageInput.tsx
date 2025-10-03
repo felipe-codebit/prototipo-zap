@@ -60,7 +60,7 @@ export default function MessageInput({ onSendMessage, onSendAudio }: MessageInpu
         'audio/wav'
       ];
       
-      let mediaRecorder: MediaRecorder;
+      let mediaRecorder: MediaRecorder | null = null;
       let selectedMimeType = '';
       
       // Encontrar o primeiro tipo suportado
