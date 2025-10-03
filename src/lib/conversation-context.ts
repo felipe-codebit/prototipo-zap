@@ -3,6 +3,9 @@ import { ChatLogger } from './logger';
 
 export class ConversationContextManager {
   private static contexts: Map<string, ConversationContext> = new Map();
+  
+  // Armazenamento persistente para conteúdo de planos (não é limpo automaticamente)
+  private static persistentContent: Map<string, { lastPlanoContent?: string; lastPlanejamentoContent?: string }> = new Map();
 
   static getContext(sessionId: string): ConversationContext {
     if (!this.contexts.has(sessionId)) {
@@ -66,12 +69,35 @@ export class ConversationContextManager {
     context.collectedData[key] = value;
     context.lastActivity = new Date();
 
+    // Se for conteúdo de plano, também armazenar no armazenamento persistente
+    if (key === 'lastPlanoContent' || key === 'lastPlanejamentoContent') {
+      if (!this.persistentContent.has(sessionId)) {
+        this.persistentContent.set(sessionId, {});
+      }
+      const persistent = this.persistentContent.get(sessionId)!;
+      persistent[key] = value as string;
+    }
+
     ChatLogger.logDataCollection(sessionId, context.currentIntent || 'unknown', context.collectedData);
   }
 
   static getCollectedData(sessionId: string): any {
     const context = this.getContext(sessionId);
     return context.collectedData;
+  }
+
+  /**
+   * Recupera conteúdo persistente (não é limpo automaticamente)
+   */
+  static getPersistentContent(sessionId: string): { lastPlanoContent?: string; lastPlanejamentoContent?: string } | null {
+    return this.persistentContent.get(sessionId) || null;
+  }
+
+  /**
+   * Limpa conteúdo persistente (usado quando necessário)
+   */
+  static clearPersistentContent(sessionId: string) {
+    this.persistentContent.delete(sessionId);
   }
 
   static getMissingDataForPlanoAula(sessionId: string): string[] {
@@ -123,6 +149,27 @@ export class ConversationContextManager {
     context.currentIntent = null;
     context.intentConfidence = 0;
     context.collectedData = {};
+    context.lastActivity = new Date();
+    // Mantém conversationHistory
+  }
+
+  /**
+   * Reseta o contexto mas preserva dados específicos (como conteúdo de planos para PDF)
+   */
+  static resetContextKeepingHistoryAndData(sessionId: string, preserveKeys: string[] = []) {
+    const context = this.getContext(sessionId);
+    
+    // Preservar dados específicos
+    const preservedData: Record<string, any> = {};
+    preserveKeys.forEach(key => {
+      if (context.collectedData[key]) {
+        preservedData[key] = context.collectedData[key];
+      }
+    });
+    
+    context.currentIntent = null;
+    context.intentConfidence = 0;
+    context.collectedData = preservedData;
     context.lastActivity = new Date();
     // Mantém conversationHistory
   }

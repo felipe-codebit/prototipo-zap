@@ -127,7 +127,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Texto da mensagem */}
         <div className="text-sm whitespace-pre-wrap">
-          {formatMessageText(message.text)}
+          {message.text.includes('<a href=') ? (
+            <div dangerouslySetInnerHTML={{ __html: message.text }} />
+          ) : (
+            formatMessageText(message.text)
+          )}
         </div>
 
         {/* Timestamp */}

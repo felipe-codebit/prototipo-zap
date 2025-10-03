@@ -226,8 +226,14 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
         sessionId
       );
 
-      // IMPORTANTE: Limpar completamente o contexto após gerar o plano
-      ConversationContextManager.resetContextKeepingHistory(sessionId);
+      // IMPORTANTE: Preservar o conteúdo do plano para geração de PDF posterior
+      const planoContent = this.extractPlanoContent(planoAula);
+      if (planoContent) {
+        ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+      }
+
+      // Limpar contexto mas preservar o conteúdo do plano
+      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanoContent']);
 
       return `${contextualResponse}\n\n${planoAula}`;
     } else {
@@ -261,8 +267,12 @@ Retorne APENAS JSON: {"intent": "nome_ou_null", "confidence": 0.0}`;
         sessionId
       );
 
-      // IMPORTANTE: Limpar completamente o contexto após gerar o planejamento
-      ConversationContextManager.resetContextKeepingHistory(sessionId);
+      // IMPORTANTE: Preservar o conteúdo do planejamento para geração de PDF posterior
+      const planejamentoContent = planejamento; // Para planejamento semanal, usar o conteúdo completo
+      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanejamentoContent', planejamentoContent);
+
+      // Limpar contexto mas preservar o conteúdo do planejamento
+      ConversationContextManager.resetContextKeepingHistoryAndData(sessionId, ['lastPlanejamentoContent']);
 
       return `${contextualResponse}\n\n${planejamento}`;
     } else {
@@ -531,10 +541,41 @@ Que ótimo você já trazer seu pedido! Antes de começarmos, deixa eu te contar
         return 'Não consegui extrair o conteúdo do plano de aula. Tente gerar um novo plano! 😊';
       }
 
-      // Gerar resposta informando que o PDF está sendo criado
+      // Armazenar o conteúdo do plano para geração via API
+      console.log('💾 Armazenando conteúdo do plano no contexto...', {
+        sessionId: sessionId.substring(0, 8),
+        planoContentLength: planoContent.length,
+        planoContentPreview: planoContent.substring(0, 100) + '...'
+      });
+      
+      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+      
+      // Verificar se foi armazenado corretamente
+      const storedContent = ConversationContextManager.getCollectedData(sessionId).lastPlanoContent;
+      const persistentContent = ConversationContextManager.getPersistentContent(sessionId);
+      console.log('✅ Conteúdo armazenado:', {
+        hasContent: !!storedContent,
+        contentLength: storedContent?.length || 0,
+        hasPersistentContent: !!persistentContent?.lastPlanoContent,
+        persistentContentLength: persistentContent?.lastPlanoContent?.length || 0
+      });
+
+      // Gerar resposta com link de download via API
       const response = `Perfeito! Vou gerar o PDF do seu plano de aula para você! 📄✨
 
-O arquivo será baixado automaticamente em alguns segundos.
+<a href="/api/pdf?sessionId=${sessionId}" download="plano-aula.pdf" style="
+  display: inline-block;
+  background: #007bff;
+  color: white;
+  padding: 12px 24px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  margin: 10px 0;
+  cursor: pointer;
+">📥 Baixar PDF do Plano de Aula</a>
+
+O arquivo foi gerado com sucesso! Clique no botão acima para fazer o download.
 
 Enquanto isso, posso te ajudar com:
 👉🏽 Criar outro plano de aula
@@ -544,8 +585,8 @@ Enquanto isso, posso te ajudar com:
 
 O que você gostaria de fazer agora?`;
 
-      // Armazenar o conteúdo do plano para geração de PDF
-      ConversationContextManager.updateCollectedData(sessionId, 'lastPlanoContent', planoContent);
+      // Log da ação
+      ChatLogger.logConversation(sessionId, '[PDF gerado]', 'PDF do plano de aula gerado e disponibilizado para download');
 
       return response;
 
