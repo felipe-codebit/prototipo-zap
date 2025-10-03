@@ -1,5 +1,9 @@
 import winston from 'winston';
-import { LogEntry } from '@/types';
+import { LogEntry, Intent } from '@/types';
+
+// Configuração do logger baseada no ambiente
+const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1';
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -9,13 +13,21 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   defaultMeta: { service: 'whatsapp-chatbot' },
-  transports: [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-  ],
+  transports: []
 });
 
-if (process.env.NODE_ENV !== 'production') {
+// Em produção (Vercel), usar apenas console
+if (isProduction || isVercel) {
+  logger.add(new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    )
+  }));
+} else {
+  // Em desenvolvimento, usar arquivos e console
+  logger.add(new winston.transports.File({ filename: 'logs/error.log', level: 'error' }));
+  logger.add(new winston.transports.File({ filename: 'logs/combined.log' }));
   logger.add(new winston.transports.Console({
     format: winston.format.simple()
   }));
@@ -40,7 +52,7 @@ export class ChatLogger {
       level: 'info',
       message: `Intent detected: ${intent} (confidence: ${confidence})`,
       sessionId,
-      intent: intent as any,
+      intent: intent as Intent,
       confidence,
       data: { originalMessage: message }
     };
@@ -65,7 +77,7 @@ export class ChatLogger {
     logger.info(logEntry);
   }
 
-  static logError(sessionId: string, error: Error, context?: any) {
+  static logError(sessionId: string, error: Error, context?: unknown) {
     if (!this.isEnabled) return;
 
     const logEntry: LogEntry = {
@@ -82,7 +94,7 @@ export class ChatLogger {
     logger.error(logEntry);
   }
 
-  static logDataCollection(sessionId: string, intent: string, collectedData: any, missingData?: string[]) {
+  static logDataCollection(sessionId: string, intent: string, collectedData: unknown, missingData?: string[]) {
     if (!this.isEnabled) return;
 
     const logEntry: LogEntry = {
@@ -90,7 +102,7 @@ export class ChatLogger {
       level: 'info',
       message: `Data collection for ${intent}`,
       sessionId,
-      intent: intent as any,
+      intent: intent as Intent,
       data: {
         collectedData,
         missingData
