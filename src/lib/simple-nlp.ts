@@ -6,7 +6,7 @@ export class SimpleNLPService {
     plano_aula: ['plano', 'aula', 'atividade', 'ensinar', 'criar', 'preparar', 'lecionar', 'lição', 'conteúdo', 'matéria'],
     tira_duvidas: ['dúvida', 'duvida', 'ajuda', 'explica', 'como', 'não entendo', 'pergunta', 'questão', 'esclarecer'],
     planejamento_semanal: ['semana', 'semanal', 'planejamento', 'organizar', 'cronograma', 'agenda', 'planejar'],
-    saudacao: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'eae'],
+    saudacao: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'eae', 'como você pode ajudar', 'o que você faz', 'funcionalidades', 'capaz de fazer', 'como posso te ajudar', 'o que consegue fazer'],
     despedida: ['tchau', 'obrigado', 'valeu', 'até logo', 'até mais', 'bye'],
     sair: ['sair', 'cancelar', 'parar', 'reiniciar', 'começar de novo', 'recomeçar', 'volta', 'voltar'],
     // Respostas afirmativas e de continuação
@@ -116,10 +116,12 @@ INTENÇÕES POSSÍVEIS:
 - tira_duvidas: Tem dúvidas educacionais, quer explicações
 - planejamento_semanal: Quer organizar/planejar semana de trabalho
 - continuar: Respostas afirmativas (sim, ok, vamos, etc) ou quer continuar algo
-- saudacao: Cumprimentos iniciais
+- saudacao: Cumprimentos iniciais, perguntas sobre funcionalidades ("como você pode ajudar?", "o que você faz?", "o que consegue fazer?")
 - despedida: Agradecimentos ou despedidas
 - sair: Quer cancelar/reiniciar conversa
 - unclear: Não conseguiu identificar
+
+IMPORTANTE: Perguntas sobre funcionalidades como "como você pode ajudar?", "o que você faz?", "o que consegue fazer?", "quais suas funcionalidades?" devem ser classificadas como "saudacao" com alta confiança.
 
 ${contextString}
 
